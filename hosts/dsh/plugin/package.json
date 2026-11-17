@@ -1,0 +1,26 @@
+{
+  "name": "schflow-dsh-plugin",
+  "version": "0.1.0",
+  "description": "dsh host integration for schflow — exposes the schflow skills (proposer / orchestrator / executor / improve) in dsh sessions via the native skill-filesystem provider",
+  "type": "module",
+  "license": "Apache-2.0",
+  "files": [
+    "cordis.patch.yml",
+    "skills",
+    "README.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "keywords": [
+    "schflow",
+    "dsh",
+    "dsh-plugin",
+    "dsh-bundle",
+    "ai-agents",
+    "pipeline",
+    "skills"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "name": "schflow",
+  "version": "0.1.0",
+  "description": "schflow host integration for claude code — skills (proposer/orchestrator/executor/improve), slash commands (/propose /board /tick) and an executor subagent for the proposal-driven task pipeline",
+  "author": {
+    "name": "schflow contributors"
+  },
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/wtr20211202/schflow"
+}

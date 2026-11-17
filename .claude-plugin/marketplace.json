@@ -1,0 +1,15 @@
+{
+  "name": "schflow",
+  "owner": {
+    "name": "schflow contributors"
+  },
+  "plugins": [
+    {
+      "name": "schflow",
+      "source": "./hosts/claude-code",
+      "description": "Proposal-driven task pipeline — skills + /propose /board /tick commands + executor subagent",
+      "version": "0.1.0"
+    }
+  ],
+  "description": "schflow plugins — proposal-driven task pipeline for AI coding agents"
+}

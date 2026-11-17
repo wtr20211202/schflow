@@ -1,0 +1,12 @@
+# schflow dsh plugin — bundle patch layer.
+# Composed after the base bundles (package.json dsh.profile.bundles), before the profile's own
+# cordis.patch.yml. A patch config REPLACES the whole config, so keep the defaults explicit.
+#
+# Skill root resolution (first hit wins):
+#   1. SCHFLOW_SKILLS_DIR  — absolute path to the schflow skills directory (repo checkout or install)
+#   2. ~/.schflow/skills   — user-layer convention (schflow setup copies/links the skills there)
+- id: skill-filesystem
+  config:
+    includeDefaultRoots: true
+    customSkillDirs: !!js 'process.env.SCHFLOW_SKILLS_DIR ? [process.env.SCHFLOW_SKILLS_DIR] : [process.env.HOME + "/.schflow/skills"]'
+    watch: true
