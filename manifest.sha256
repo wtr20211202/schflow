@@ -5,8 +5,8 @@ fbb87bedc2547f38f12c655e34a4b44f568aa0e5e40d77b14d75bb5a1079a347 *./.editorconfi
 5db02f8d7bc76347e7f489d73c76192b0ff5bc1b929836dfb6a832e25bb3f2e5 *./.gitignore
 8927aa8e72907d264d4b809b6e2d536e44688db6161967000cd18b7c349424d2 *./CONTRIBUTING.md
 0837bbcec0f5def4f6830793a2c8449b0330fea930efc1070f70125f5189344c *./LICENSE
-06d9f1fadde37c594aabb62d78a247d0e2a5fa43af699e7e0f84f6a07ee8e0ef *./README.md
-7ee125bdb28dc98fd05eead331c1aa21eb647d7e43e130eb1cc8e53637d36514 *./README.zh-CN.md
+cf56944094a28c8cd7378f55295ad936c64d9850065b22b8561a097b98564f7a *./README.md
+66c264fd693a2c0708bd49d30d4013c8e4602041caea83459396d7248b6be51d *./README.zh-CN.md
 189bf5dfd9e221202141724abb2c42eef9bcd21d5570e237f92315f3c6013058 *./bin/schflow.ts
 a56e6ad91f8fb9e0fe0d4ffa98eb8c271d422e54c0c1fc4325c6193e245f674d *./core/README.md
 74b617233a0667e9abbcab47f55756af5f6fc3fe865db03f831f6bd7a11962ca *./core/lib/atomic.mjs
@@ -56,8 +56,8 @@ e9b2d4c7c3cd7a85ad9daf8dfb42c839e725501c24f270c138b9f3f96c3301d7 *./core/test/in
 29f3f3f8e97f67619fda38ca4a160df80179040324919df3dd409aab8c09ee71 *./core/test/integration/kill-drill.integration.test.mjs
 51fb6658a13ee08730f2ac324b18af6db9d5864ced5634e536df67cd22ba21c1 *./core/test/integration/merge-autoresolve.integration.test.mjs
 98a5e19c09f5ba12922f8ad72b1dd3e99cc9445eb70c4f855116d89aaaa00ab0 *./core/test/run-all.mjs
-eb46ef8bc3116fa71fedab853bb7bb7b371d45f249a7c73bd469c43d1dbf4ae5 *./core/test/unit/claude-plugin-sync.test.mjs
-eee756d299d87cf56eaab4fde6bd5ce483330d9a6338975c9d0af227f84ccfd7 *./core/test/unit/dsh-plugin-sync.test.mjs
+3807a1f364760bb2f1531c3f74c9c03fedc8866e0ad09e2441e324c39ddb27b5 *./core/test/unit/claude-plugin-sync.test.mjs
+abca594b9fd1eaa25eddf84854c2433f940cbc1799c60b3c5b2a01859a0d245e *./core/test/unit/dsh-plugin-sync.test.mjs
 76d5608372da49cf5046612a80b6d421d807d7c6ba7b9365c0313c85f6f12c42 *./core/test/unit/event-list.test.mjs
 180a324ef44fdf4f03191aa3562efe6bab1111da3031c616561cbaecc688c3a2 *./core/test/unit/events.test.mjs
 c6ce85cd79831988cba763ef759ee9c1c8255f8a64c058a2ba5d285699460356 *./core/test/unit/lock.test.mjs
@@ -99,7 +99,7 @@ c57d30306e70d9a428cb913c82405e5c2488d7d99c63d67460ef42c5ce0156a7 *./docs/adr/ADR
 c5558e10b085f6dbdac0362554fb3f39c43b587809e22d09e6a85bf23f398dc8 *./docs/adr/ADR-0030-on-demand-full-e2e.md
 fb09d15252b9a6c9e7086ecbf455ea643de3b973d4b47b16c3dd6b4177394fc0 *./docs/adr/ADR-0031-fold-timing-and-gate-relief.md
 16085b2f525a9a36066385315a2c29a22b05567869da6128de618853a1df5f30 *./docs/adr/README.md
-af645efc2829233765ebbbbdb8d55a2f20b68e2e167385eeb57dc160cbb69acb *./docs/design.md
+d1dd2dbaf1a2e5bfea2d6ba1de2c9107a360a801e146a0c1d28fcf458190b278 *./docs/design.md
 b5c2cf5a87dea37668a00256b61bbd08ce1dbdbfb49d9fde5543ce0622d67c64 *./docs/spec/events.md
 1c6088d5c0fb760689d109cafe2d70b1f10007df1fefe478c4d56ef07e204cec *./docs/spec/programs.md
 fe53698eb45f8211b54262a3a82079cc6af4c3afc4339e09a201d06fd7f029e5 *./docs/spec/result.md
@@ -110,12 +110,13 @@ c809266f3f52e703de2a8225e0094e534ed5c52ec1749ebcb11b3a659ce8437e *./examples/toy
 cfd3d21d789ed3f3d2837168c40a307b4e9b2aed68dee61b59ca8d14956fcb8a *./golden/judge-j1.md
 b83bff00c7323c7145267f1b1996f35c5dc7d66992cccd13de701eb158de0860 *./golden/judge-j2.md
 205bdc17787c81fcc23c305134ef1be4716bad824a8057679c64b102b10decee *./golden/judge-j3.md
-b7b242d364b11a82c4de3cecb7a8726c7d15afd1a24730efcf07aca2d2c0af16 *./hosts/claude-code/.claude-plugin/plugin.json
+597526bbcf1222cb4b453d62c6bea34492765ca44ab909e606c2ac7aacf8fd44 *./hosts/claude-code/.claude-plugin/plugin.json
 8b4f836542085b3e2b28bc4427eb5292c72a1c1cfdc24e05ac14a5ff6911f5f0 *./hosts/claude-code/README.md
 8d9ce6fb91b2efb08c7c15239bec1bbce98cfa6e6a8d74734fdd6a58f8e0427f *./hosts/claude-code/agents/schflow-executor.md
 6fdc4d7e65c1c356b42a25c6bb0213767cc7b701656cfadfec596c69518bcec7 *./hosts/claude-code/commands/board.md
 fa6f35320c8fadf74e566a87068032edc244179f927239c462311bfccc6e96d8 *./hosts/claude-code/commands/propose.md
 5a6bcb22c849940dc886e0b2226bccb86ff16208e264cf045209c3d9a2ce7894 *./hosts/claude-code/commands/tick.md
+584f3e817cf99fe6286d5081aaff56118996a54fd3ee1cd8c61088476cb93806 *./hosts/claude-code/skills/audit/SKILL.md
 ddad5c05ba43ce7fbf5f18b51085ab0043a91fb28f0a121524a732daa5607569 *./hosts/claude-code/skills/executor/SKILL.md
 d1815a3cb1accc50af0f29ea87ba248bea65ec4b7fb0922ad94734e108ee5f05 *./hosts/claude-code/skills/improve/SKILL.md
 85b8a7c08d707229d298680d31d9a166b817e79c3c79ee4f3440ed5e979a412c *./hosts/claude-code/skills/orchestrator/SKILL.md
@@ -126,6 +127,7 @@ d1815a3cb1accc50af0f29ea87ba248bea65ec4b7fb0922ad94734e108ee5f05 *./hosts/claude
 5ae30ccd5b7d08274f9595a543a118f82957da9962627328671bdac7d49c2b38 *./hosts/dsh/plugin/README.md
 26caf0b9c3f18824717f2546168dce19142d0e11a89b4fde2d244347fb7e8370 *./hosts/dsh/plugin/cordis.patch.yml
 612968f2c241e4d37d788e960fd13f0ccfe62e10c156bafd608800bef38b7556 *./hosts/dsh/plugin/package.json
+584f3e817cf99fe6286d5081aaff56118996a54fd3ee1cd8c61088476cb93806 *./hosts/dsh/plugin/skills/audit/SKILL.md
 ddad5c05ba43ce7fbf5f18b51085ab0043a91fb28f0a121524a732daa5607569 *./hosts/dsh/plugin/skills/executor/SKILL.md
 d1815a3cb1accc50af0f29ea87ba248bea65ec4b7fb0922ad94734e108ee5f05 *./hosts/dsh/plugin/skills/improve/SKILL.md
 85b8a7c08d707229d298680d31d9a166b817e79c3c79ee4f3440ed5e979a412c *./hosts/dsh/plugin/skills/orchestrator/SKILL.md
@@ -136,6 +138,7 @@ dc9dce600721998af0d824227461fb7c05d0ac216a761b2d077b34df4e774b92 *./hosts/zcode/
 2ecfc1d6dfcce1285772978f627feb38d667ecced1bf83539006d3cafe0b5215 *./hosts/zcode/cron/proposer-round.md
 29cd150a024ea01ab93dadbad37f62a189554aa498b6c7573b22b2e9ec9b0844 *./package-lock.json
 8181cd258639e3bd0d85a3ab2b54bbb203abde3a0ebe7938544a3f4f3a779299 *./package.json
+584f3e817cf99fe6286d5081aaff56118996a54fd3ee1cd8c61088476cb93806 *./skills/audit/SKILL.md
 c03c80915732e107dea3ccc7bc831d37743a3e7e4b730e465643106386642402 *./skills/directions/human.yaml
 d0c73006af005f76202e240c42cc8cc404a235da1848dd0c25b11e4c54a92444 *./skills/directions/industry.yaml
 f74a0d0db271d90cefd9ae404fdda5323971daf801cf31880c3d32900bb48161 *./skills/directions/polish.yaml

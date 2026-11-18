@@ -19,7 +19,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { PKG_ROOT } from '../helpers.mjs';
 
-const SKILLS = ['proposer', 'orchestrator', 'executor', 'improve'];
+const SKILLS = ['proposer', 'orchestrator', 'executor', 'improve', 'audit'];
 const PLUGIN_ROOT = path.join(PKG_ROOT, 'hosts', 'claude-code');
 
 test('plugin.json 位于 .claude-plugin/ 且 name 与 marketplace 一致', () => {

@@ -47,7 +47,7 @@ Both hosts install via their **official plugin mechanism** — no manual copying
 dsh plugin --profile schflow add "github:wtr20211202/schflow#path:hosts/dsh/plugin"
 ```
 
-Requires: node ≥ 20 and git. The plugin gives your agent sessions the skills (`schflow-proposer` / `schflow-orchestrator` / `schflow-executor` / `schflow-improve`) that operate the pipeline; the deterministic programs live in this repo (`core/programs/*.mjs`) and run with plain node.
+Requires: node ≥ 20 and git. The plugin gives your agent sessions the skills (`schflow-proposer` / `schflow-orchestrator` / `schflow-executor` / `schflow-improve` / `schflow-audit`) that operate the pipeline; the deterministic programs live in this repo (`core/programs/*.mjs`) and run with plain node.
 
 ## Quick start
 
@@ -65,7 +65,7 @@ node core/programs/dispatch.mjs --auto --runner fake --json
 node core/programs/fold.mjs --json && node core/programs/merge.mjs --json
 ```
 
-In an agent session (claude code or dsh, with the plugin installed), just ask: *"list your schflow skills", "propose an improvement", "run one tick", "show the board"*.
+In an agent session (claude code or dsh, with the plugin installed), just ask: *"list your schflow skills", "propose an improvement", "run one tick", "show the board", "audit the discipline"*.
 
 > For the full lifecycle — proposal → review gate → parallel executors → merge queue → push — see the [design doc](docs/design.md) and the host READMEs: [claude code](hosts/claude-code/README.md) · [dsh](hosts/dsh/README.md) · [ZCode](hosts/zcode/README.md).
 

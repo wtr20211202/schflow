@@ -47,7 +47,7 @@
 dsh plugin --profile schflow add "github:wtr20211202/schflow#path:hosts/dsh/plugin"
 ```
 
-前置：node ≥ 20 与 git。插件让你的智能体会话获得操作流水线的技能（`schflow-proposer` / `schflow-orchestrator` / `schflow-executor` / `schflow-improve`）；确定性程序在本仓库（`core/programs/*.mjs`），纯 node 直跑。
+前置：node ≥ 20 与 git。插件让你的智能体会话获得操作流水线的技能（`schflow-proposer` / `schflow-orchestrator` / `schflow-executor` / `schflow-improve` / `schflow-audit`）；确定性程序在本仓库（`core/programs/*.mjs`），纯 node 直跑。
 
 ## 快速上手
 
@@ -65,7 +65,7 @@ node core/programs/dispatch.mjs --auto --runner fake --json
 node core/programs/fold.mjs --json && node core/programs/merge.mjs --json
 ```
 
-装好插件的智能体会话里（claude code 或 dsh），直接说：*「列出你的 schflow 技能」「提一个改进提案」「跑一轮 tick」「看看板」*。
+装好插件的智能体会话里（claude code 或 dsh），直接说：*「列出你的 schflow 技能」「提一个改进提案」「跑一轮 tick」「看看板」「审计一下纪律」*。
 
 > 完整生命周期——提案 → 评审闸 → 并行执行 → 合并队列 → 推送——见[设计文档](docs/design.md)与宿主说明：[claude code](hosts/claude-code/README.md) · [dsh](hosts/dsh/README.md) · [ZCode](hosts/zcode/README.md)。
 

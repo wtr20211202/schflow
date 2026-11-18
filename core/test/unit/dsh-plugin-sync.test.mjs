@@ -20,7 +20,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { PKG_ROOT } from '../helpers.mjs';
 
-const SKILLS = ['proposer', 'orchestrator', 'executor', 'improve'];
+const SKILLS = ['proposer', 'orchestrator', 'executor', 'improve', 'audit'];
 
 test('plugin skills 与正典 skills/ 逐字节一致（改正典后需同步拷贝）', () => {
   for (const s of SKILLS) {
