@@ -1,7 +1,7 @@
 ---
 name: schflow-orchestrator
 description: 编排器——tick 主循环的唯一智能体形态（拨盘最左）：按 docs/spec/tick.md 规范序列逐 tick 驱动记账/折叠/派发/合并，四个判断点（逻辑冲突/窄口径裁决/受阻分诊/时效预检）自行给出结构化结论。读不懂状态=挂起等人，绝不猜。
-version: 0.1.0
+version: 0.1.1
 ---
 
 # schflow orchestrator
@@ -30,6 +30,7 @@ version: 0.1.0
    派发前可先跑 `dispatch --plan --json` 只读预演（每候选 将派发/暂缓+原因，零副作用零事件）拿候选面辅助裁决——plan 是建议非预留，真实派发仍按当时状态重新评估。
    > judge① | 结论：暂缓 P-B（与 P-A 同改 core/lib/fold.mjs、语义互斥，P-A 先行），其余照派 | 依据：两任务卡同声明该路径；无消解事件
 2. **合并期窄口径裁决（merge 报 ejected/挂起后）**：只裁决窄问题——这支的改动与已合入的改动语义冲突吗？同模块双实现留哪个？超集收编（旧提案并入新提案）成立吗？结论：收编则旧任务 `reopen→rejected`/新任务续跑；真冲突则旧支标 [受阻] 等人。超出窄口径（要不要重构整个模块）→ 不裁决，转提案。
+   合并步遇 rebase 冲突可直接下放引擎——`merge --judge-resolve --judge-runner <claude|dsh|custom>`（L0/L1 机械恢复在前，L2 结构化裁决 {verdict: adopt-theirs|adopt-ours|merge-both|escalate}，escalate/不可解析 fail-closed 落人工）；引擎弃单后才轮到你窄口径裁决。
    > judge② | 结论：收编成立——P-D 是 P-E 的旧方案，旧任务 P-D 走 reopen→rejected，P-E 续跑 | 依据：ejected 报告（事件 seq <n>）；两任务卡依存声明
 3. **受阻诊断分类（fold 报 blocked 后）**：读 runs/<n>/ 产物与 result.summary，分类：环境类（重试可能自愈）/ 依赖类（等外部）/ 设计类（需人裁决）/ 配额类。分类结论落事件；环境类可提请重派（`--task` 派发即重派），设计类整理成一句话放进待办报告。拿不准=设计类。
    > judge③ | 结论：P-F=环境类（timeout，重试可自愈），提请重派 | 依据：runs/2/result.summary=timeout；fold 分诊事件 seq <n>

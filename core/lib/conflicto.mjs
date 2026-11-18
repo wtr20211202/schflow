@@ -27,6 +27,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { git } from './gitutil.mjs';
 import { appendEvent } from './events.mjs';
+import { findTaskDir } from './store.mjs';
 
 const sleepSync = (ms) => { Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms); };
 
@@ -224,8 +225,10 @@ function judgeResolve({ home, mw, card, judge, files }) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'schflow-judge-'));
   try {
     const promptPath = path.join(tmp, 'prompt.md');
-    fs.writeFileSync(promptPath, buildPrompt(card, threeWay));
+    const promptText = buildPrompt(card, threeWay);
+    fs.writeFileSync(promptPath, promptText);
     const verdict = runJudge(judge, promptPath);
+    saveJudgeEvidence(home, card.id, promptText, verdict); // 成败都落；fail-soft 不中断合并链
     if (!verdict.ok) return fail(verdict.reason);
     const rationale = typeof verdict.rationale === 'string' ? verdict.rationale.slice(0, 500) : '(无理由)';
 
@@ -259,6 +262,39 @@ function judgeResolve({ home, mw, card, judge, files }) {
   }
 }
 
+/** 裁决证据落盘（审计面）：任务目录 merge-judge/<ISO 时间戳含毫秒>.txt，四段——提示词全文/
+ *  原始 stdout（>64KB 截断）/stderr 摘要（>4KB 截断）/解析结论行（verdict+rationale 或失败 reason）。
+ *  成功失败都落（unparseable 归因不再手工重造现场）；此刻处于 rebase 冲突态，写盘失败绝不中断
+ *  合并链——fail-soft，仅 console.error 提示；任务归档时证据随任务目录带走。 */
+function saveJudgeEvidence(home, taskId, promptText, result) {
+  try {
+    const dir = findTaskDir(home, taskId);
+    if (!dir) return; // 任务目录不存在（异形态）——证据无处落，静默弃（fail-soft 面）
+    const evDir = path.join(dir, 'merge-judge');
+    fs.mkdirSync(evDir, { recursive: true });
+    // ISO 时间戳含毫秒防同秒覆盖；':' 于 Windows 文件名非法，置换为 '-'
+    const stamp = new Date().toISOString().replaceAll(':', '-');
+    const slice = (s, max) => (String(s ?? '').length > max ? `${String(s ?? '').slice(0, max)}\n(截断：超 ${max} 字符)` : String(s ?? ''));
+    const conclusion = result.ok
+      ? `verdict=${result.verdict} rationale=${typeof result.rationale === 'string' ? result.rationale.slice(0, 500) : '(无理由)'}`
+      : `失败 reason=${result.reason}`;
+    const text = [
+      '==== 提示词全文 ====',
+      promptText,
+      '==== 原始输出 (stdout) ====',
+      slice(result.stdout, 64 * 1024),
+      '==== stderr 摘要 ====',
+      slice(result.stderr, 4 * 1024),
+      '==== 解析结论 ====',
+      conclusion,
+      '',
+    ].join('\n');
+    fs.writeFileSync(path.join(evDir, `${stamp}.txt`), text);
+  } catch (e) {
+    console.error(`merge-judge 证据落盘失败（不中断合并链）：${e.message}`);
+  }
+}
+
 /** 裁决提示词（落 os.tmpdir——不进 HOME 事件面）；分段定界符与测试夹具解析约定同源 */
 function buildPrompt(card, threeWay) {
   const seg = [
@@ -267,6 +303,7 @@ function buildPrompt(card, threeWay) {
     `任务卡：${card.id} ${card.title}`,
     '裁决契约：只输出一行 JSON（不得有其它文字）：',
     '{"verdict":"adopt-theirs"|"adopt-ours"|"merge-both"|"escalate","rationale":"≤500字","files":{"<path>":"完整合并后全文"}}',
+    'files 值中的换行必须转义为 \\n（整体仍是一行 JSON）——输出字面换行会破坏解析',
     '- adopt-theirs=采纳任务分支侧；adopt-ours=保留主线侧（仅当分支改动已被主线等价包含时使用——会丢弃分支该冲突块改动）；',
     '- merge-both=files 必填且必须覆盖全部冲突文件；escalate=无法裁决，交人工。',
     '',
@@ -286,11 +323,12 @@ function buildPrompt(card, threeWay) {
 }
 
 /** 起裁决器（spawnSync 前台；argv 纪律同 runner：数组直启零 shell、任务书/prompt 恒走 stdin 或文件占位）。
- *  零凭据零 env 注入——引擎不经手任何密钥，子进程只继承原生环境。 */
+ *  零凭据零 env 注入——引擎不经手任何密钥，子进程只继承原生环境。
+ *  返回值恒带原始 stdout/stderr（证据落盘消费），解析结果在 ok/verdict/rationale/files 字段。 */
 function runJudge(judge, promptPath) {
   let cli; let args; let stdinFile = null;
   if (judge.runner === 'claude') {
-    // claude -p：无 --output-format 时 stdout 为纯文本——从输出中提取第一个可解析 JSON 对象
+    // claude -p：无 --output-format 时 stdout 为纯文本——从输出中提取末个带 verdict 的可解析 JSON 对象
     cli = 'claude';
     args = ['-p'];
     if (judge.model) args.push('--model', judge.model);
@@ -311,22 +349,30 @@ function runJudge(judge, promptPath) {
     encoding: 'utf8', windowsHide: true, timeout: timeoutMs,
     ...(stdinFile ? { input: fs.readFileSync(stdinFile, 'utf8') } : {}),
   });
-  if (r.error) return { ok: false, reason: r.error.code === 'ETIMEDOUT' ? 'timeout' : `spawn-failed:${r.error.code ?? r.error.message}` };
-  if (r.signal) return { ok: false, reason: `timeout:${r.signal}` };
+  const raw = { stdout: r.stdout || '', stderr: r.stderr || '' }; // 原始输出面（证据留存消费）
+  if (r.error) return { ok: false, reason: r.error.code === 'ETIMEDOUT' ? 'timeout' : `spawn-failed:${r.error.code ?? r.error.message}`, ...raw };
+  if (r.signal) return { ok: false, reason: `timeout:${r.signal}`, ...raw };
   const parsed = extractJson(r.stdout || '');
-  if (!parsed || !VERDICTS.includes(parsed.verdict)) return { ok: false, reason: 'unparseable-output' };
-  return { ok: true, verdict: parsed.verdict, rationale: parsed.rationale, files: parsed.files };
+  if (!parsed || !VERDICTS.includes(parsed.verdict)) return { ok: false, reason: 'unparseable-output', ...raw };
+  return { ok: true, verdict: parsed.verdict, rationale: parsed.rationale, files: parsed.files, ...raw };
 }
 
-/** 从裁决器纯文本输出中提取第一个可解析 JSON 对象（claude -p 纯文本形态兼容） */
+/** 从裁决器纯文本输出中提取「最后一个带字符串 verdict 字段的可解析 JSON 对象」（claude -p 纯文本
+ *  形态兼容）。取末个而非首个：L2 真机首验实证 reasoning 前段常混草稿/示例 JSON 片段（多无 verdict
+ *  字段或非终答），终答恒在末尾——倒序 + verdict 字段双闸同时压掉无 verdict 片段与不可解析的管道
+ *  形态示例行；一个都没有 → null（fail-closed 语义不变，由调用方兜底）。 */
 function extractJson(text) {
+  const objs = [];
   for (let i = text.indexOf('{'); i !== -1; i = text.indexOf('{', i + 1)) {
     for (let j = text.indexOf('}', i); j !== -1; j = text.indexOf('}', j + 1)) {
       try {
         const o = JSON.parse(text.slice(i, j + 1));
-        if (o && typeof o === 'object' && !Array.isArray(o)) return o;
+        if (o && typeof o === 'object' && !Array.isArray(o)) { objs.push(o); break; } // 同一起点至多一个可解析跨度
       } catch { /* 续扫下一个 '}' 端点 */ }
     }
+  }
+  for (let k = objs.length - 1; k >= 0; k--) {
+    if (typeof objs[k].verdict === 'string') return objs[k]; // 倒序取首个带字符串 verdict 者
   }
   return null;
 }

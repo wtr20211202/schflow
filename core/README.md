@@ -37,7 +37,7 @@ node core/programs/dispatch.mjs --auto --json
 
 ### merge 补充（tick spec 第 5 步的程序化身）
 
-序列：per-branch lock → 合并工作树净守卫 → **零交集判定（在 rebase 前算原始 fork**——rebase 后算必恒真）→ rebase（**冲突三级自动恢复链 v1.0.26**：L0 abort+300ms 退避重试一次 → L1 非交叠语义合并——逐文件 `merge-file --diff3` 块级安全判据〔base 段空=双侧纯追加拼接 / 单侧==base=取对侧 / 双侧改写同段=不安全弃〕+增量行多重集完整性后验 → L2 judge② 仅 `--judge-resolve` 启用——三方内容喂 LLM 出一行 JSON `{verdict: adopt-theirs|adopt-ours|merge-both|escalate, rationale, files?}`，adopt/merge 自动应用，escalate/不可解析/缺盖/超时 fail-closed abort；缺省零 LLM，L0/L1 照常；自愈落 `merge.auto-resolved{level}`、裁决落 `merge.resolved{verdict}`）→ 复验（零交集跳过；`when: always|specs-nonempty` 谓词；复验链是 L1/L2 的语义兜底）→ `--no-ff` 合并 → 出口扫描（内置 secret 特征集）→ base 推进（被主 checkout 持有时=主树干净守卫+ff-only；否则 update-ref 带旧值校验）→ push（快进-only，非快进=树等价消解或挂起）→ 删支（`-d` 安全阀）→ 归档。
+序列：per-branch lock → 合并工作树净守卫 → 零交集判定（rebase 前算原始 fork）→ rebase（冲突三级自动恢复链：L0 机械重试 / L1 严格 union / L2 judge② `--judge-resolve`；判据与护栏见 core/lib/conflicto.mjs 头注）→ 复验（零交集跳过，`when` 谓词——L1/L2 的语义兜底）→ `--no-ff` 合并 → 出口扫描（secret 特征集）→ base 推进（主 checkout 持有=主树干净守卫+ff-only，否则 update-ref 旧值校验）→ push（快进-only，非快进=树等价消解或挂起）→ 删支（`-d` 安全阀）→ 归档。
 
 - **ejected 族**：复验失败 / rebase 冲突（恢复链 L0~L2 穷尽后仍败）→ 该支标受阻回炉（blocked→approved→重派），队列继续下一支（不队头阻塞）；
 - **挂起人工（停队列）**：secret-scan 命中 / 分支失踪 / 未知 verify 谓词 / 主树脏 / 推送非快进且非树等价 / merge 冲突 / 合并工作树脏；
