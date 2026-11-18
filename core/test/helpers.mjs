@@ -103,8 +103,10 @@ export function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-/** 轮询 fold 至收敛（全部在途折完）或超时 */
-export async function pollFold(home, { expectCount = 1, timeoutMs = 15_000 } = {}) {
+/** 轮询 fold 至收敛（全部在途折完）或超时。
+ *  缺省 45s：CI 冷跑 Windows runner（AV 扫描/共享 CPU）下 spawned 执行器写 result 偶超 15s
+ *  ——v0.1.5 CI windows-22 一次性 flake 的唯一合理机制（本地热机三轮 79/79 不复现）。 */
+export async function pollFold(home, { expectCount = 1, timeoutMs = 45_000 } = {}) {
   const { readEvents } = await import('../lib/events.mjs');
   const deadline = Date.now() + timeoutMs;
   let last;

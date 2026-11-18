@@ -71,7 +71,7 @@ test('kill -9 演练：执行器被杀 → interrupted 折叠+WIP 保全 → 重
   try {
     // b) 真杀（Windows 上 SIGKILL 即无条件终止）
     process.kill(entry.pid, 'SIGKILL');
-    const deadline = Date.now() + 5000;
+    const deadline = Date.now() + 15_000; // CI 冷跑放宽（AV/共享 CPU 下进程收尸与句柄消失均变慢）
     while (pidAlive(entry.pid) && Date.now() < deadline) await sleep(50);
     assert.equal(pidAlive(entry.pid), false, 'kill 后 pid 确死');
 

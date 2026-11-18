@@ -84,7 +84,7 @@ function spawnSleeper() {
 }
 
 /** 轮询等待 pid 确死（Windows TerminateProcess 异步完成，kill 返回≠句柄即刻消失） */
-async function waitDead(pid, timeoutMs = 5000) {
+async function waitDead(pid, timeoutMs = 15_000) { // CI 冷跑放宽：SIGKILL 收尸在慢机偶超 5s
   const deadline = Date.now() + timeoutMs;
   while (pidAlive(pid) && Date.now() < deadline) await sleep(50);
   return !pidAlive(pid);
@@ -118,7 +118,7 @@ test('锁三态②：死 pid 残留=立即偷（不等 10min 陈旧窗）', asyn
   const t0 = Date.now();
   const h = acquireLock(dir, { staleMs: 10 * 60_000 }); // 按陈旧窗逻辑应忙——pid 活性坐实残留即偷
   assert.ok(h, '死 pid → 崩溃/幽灵残留坐实，立即偷移');
-  assert.ok(Date.now() - t0 < 5_000, '不得等待陈旧窗（staleMs=10min）');
+  assert.ok(Date.now() - t0 < 30_000, '不得等待陈旧窗（staleMs=10min）——30s 上界仍证未等 10min 陈旧窗，兼容 CI 慢机');
   h.release();
   assert.equal(fs.existsSync(dir), false, '偷移后目录清走');
 });

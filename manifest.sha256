@@ -44,7 +44,7 @@ e7073f8359fac60b2eb824dc0cc32295322196ab558aa4a7d9c8c9d49afbe164 *./core/test/fi
 c196bbd64cd00a575d20578443209c4d40999f95d1597829426b02825b44dbf0 *./core/test/fixtures/judge-merge-both.mjs
 967529fd3131ac96a84b2ea54ead11b7fd1441382bf494f4d0a47fac411ca7f1 *./core/test/fixtures/judge-no-verdict-anywhere.mjs
 85ba86d5ea3439795df80010bd8e331f04b5d0f4e6634c5fb333ca7cc38a9209 *./core/test/fixtures/judge-wsl-noise-draft-then-final.mjs
-ff0db3e7e095ea6adfccb559f8a8717fbdb0b6ea834c62a066d4ce3af908a702 *./core/test/helpers.mjs
+fd3582d1e94baaf4edde5439a10783d1b16c3caed0d121e2ee63517f7dcbfec6 *./core/test/helpers.mjs
 1ffb485f954d3dcd86dede0ce4f57500a2e2fd13db4438e28b6e04c94a384a74 *./core/test/integration/array-runner.integration.test.mjs
 3490eb643a5e8e0e54b0f97dfacf7f39b4b508087d852fe299327f60f19cb53d *./core/test/integration/env-lease.integration.test.mjs
 d7ca4883b6dbc9727da99c9b8e1e7b7c6a6ddf46608f423cd18b5176b992e910 *./core/test/integration/failure-paths.integration.test.mjs
@@ -53,14 +53,14 @@ d7ca4883b6dbc9727da99c9b8e1e7b7c6a6ddf46608f423cd18b5176b992e910 *./core/test/in
 f30301a68ecf6f5b22a9bd4069f89a6027a94787f0833c2c8e83f92ccca0965b *./core/test/integration/intake.integration.test.mjs
 bc584170288fde4bd206fbd56232263d7c7970daf74128d4d1128227c08878bc *./core/test/integration/j1-fixes.integration.test.mjs
 e9b2d4c7c3cd7a85ad9daf8dfb42c839e725501c24f270c138b9f3f96c3301d7 *./core/test/integration/judge-hooks.integration.test.mjs
-eeff33a1fefc0f3f5ab5020f8cdc301f9062ab9232023a5cf69b199afba79f24 *./core/test/integration/kill-drill.integration.test.mjs
+29f3f3f8e97f67619fda38ca4a160df80179040324919df3dd409aab8c09ee71 *./core/test/integration/kill-drill.integration.test.mjs
 51fb6658a13ee08730f2ac324b18af6db9d5864ced5634e536df67cd22ba21c1 *./core/test/integration/merge-autoresolve.integration.test.mjs
 98a5e19c09f5ba12922f8ad72b1dd3e99cc9445eb70c4f855116d89aaaa00ab0 *./core/test/run-all.mjs
 eb46ef8bc3116fa71fedab853bb7bb7b371d45f249a7c73bd469c43d1dbf4ae5 *./core/test/unit/claude-plugin-sync.test.mjs
 eee756d299d87cf56eaab4fde6bd5ce483330d9a6338975c9d0af227f84ccfd7 *./core/test/unit/dsh-plugin-sync.test.mjs
 76d5608372da49cf5046612a80b6d421d807d7c6ba7b9365c0313c85f6f12c42 *./core/test/unit/event-list.test.mjs
 180a324ef44fdf4f03191aa3562efe6bab1111da3031c616561cbaecc688c3a2 *./core/test/unit/events.test.mjs
-08a356c9cee4473da37df0f27621e51b1447eea521bfcc38ddb6e2b19524cd0a *./core/test/unit/lock.test.mjs
+c6ce85cd79831988cba763ef759ee9c1c8255f8a64c058a2ba5d285699460356 *./core/test/unit/lock.test.mjs
 254171fb45b7871a7c4a76aacd1359f28921e5e3cefa0fbe0dd5ca183497c763 *./core/test/unit/next-id.test.mjs
 3f6b039904945b4fc43ba806e6130221f46ce6b32e7e59749cafb214c0909d05 *./core/test/unit/normalize.test.mjs
 e51b244feb9a916c71bb1466b31a4286166809d967b76ef5a21fd6909f26d1f5 *./core/test/unit/pool-sim.test.mjs
