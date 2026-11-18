@@ -61,7 +61,15 @@ export function buildTaskBook(p) {
   }
   if (prevRuns.length) {
     L.push('## 前次尝试产物（中断重派——从中断处继续，不从零重来）');
-    for (const n of prevRuns) L.push(`- runs/${n}/（output.md / result.json / verify.log 如存在）`);
+    for (const n of prevRuns) {
+      L.push(`- runs/${n}/（output.md / result.json / verify.log 如存在）`);
+      // fold 折 interrupted 时落盘的违规明细（C6）：逐行渲染——执行器自纠有明确靶子，不靠翻原文件猜
+      const violations = readRunViolations(taskDir, n);
+      if (violations.length) {
+        L.push('  - 前次 result 违规（本次必改）：');
+        for (const v of violations) L.push(`    - ${v}`);
+      }
+    }
     L.push('');
   }
   L.push('## 产物契约（不可协商，docs/spec/result.md）');
@@ -97,6 +105,16 @@ function readProposal(card, taskDir) {
     if (fs.existsSync(f)) return fs.readFileSync(f, 'utf8');
   }
   return `（提案正文缺失——按标题理解：${card.title}）`;
+}
+
+/** runs/<n>/violations.json 的违规清单（fold 折 interrupted 时落盘）；缺失/损坏返回 []——渲染面 fail-soft */
+function readRunViolations(taskDir, n) {
+  if (!taskDir) return [];
+  const f = path.join(taskDir, 'runs', String(n), 'violations.json');
+  try {
+    const j = JSON.parse(fs.readFileSync(f, 'utf8'));
+    return Array.isArray(j.violations) && j.violations.length ? j.violations : [];
+  } catch { return []; }
 }
 
 function hasDesignDocs(card) {

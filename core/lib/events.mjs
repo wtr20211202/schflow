@@ -25,7 +25,9 @@ export const EVENT_TYPES = [
   'task.created', 'status.changed', 'dispatched', 'folded',
   'env.leased', 'env.released', 'verify.run', 'review.recorded',
   'merge.started', 'merge.done', 'merge.failed', 'merge.ejected',
+  'merge.auto-resolved', 'merge.resolved',
   'lock.acquired', 'lock.released', 'heartbeat.tick', 'note.appended',
+  'host-assist',
 ];
 
 /** 追加事件：信封自动补 ts/seq/schemaVersion。返回完整事件对象。 */

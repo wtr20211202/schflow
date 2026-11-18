@@ -16,8 +16,9 @@
 
 // 八程序⑥ fold：折叠在途（tick 第 3 步的程序化身）。
 // 活性判定=落盘面证据：result.json 在→按契约四态收编；不在→pid 活=仍在跑 / pid 死=interrupted
-// （attempts 已在派发时计——interrupted 折叠不再另加）。解析失败=interrupted 重派（契约底线④：
-// 重派任务书自动附前次 runs/ 引用——由 dispatch 组装）。折 done/interrupted/blocked 即释放其租约。
+// （attempts 已在派发时计——interrupted 折叠不再另加）。result 违规先过白名单机械修正（宿主代收
+// L0，normalize.mjs——修得动则按修正后收编并留 host-assist 审计），修不动=interrupted 重派（契约
+// 底线④：重派任务书自动附前次 runs/ 引用+违规明细——由 dispatch 组装）。折 done/interrupted/blocked 即释放其租约。
 import { parseArgs } from 'node:util';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -28,6 +29,7 @@ import { findTaskDir, loadCard, saveCard, transition, archiveTask } from '../lib
 import { routeProfile, resolveRepo, gitTrackOf } from '../lib/profile.mjs';
 import { releaseAllForTask } from '../lib/envpool.mjs';
 import { validateResult } from '../lib/result.mjs';
+import { normalizeResult } from '../lib/normalize.mjs';
 import { triageBlocked } from '../lib/triage.mjs';
 import { pidAlive } from '../lib/runner.mjs';
 import { removeWorktree, taskWorktree } from '../lib/gitutil.mjs';
@@ -76,7 +78,20 @@ try {
       if (result) violations = validateResult(result, { gitTrack });
 
       if (violations.length) {
-        // 契约底线④：解析失败=interrupted 重派（附前次产物引用由 dispatch 负责）
+        // 宿主代收 L0：机械可修形态（白名单三则）先引擎修正——语义无歧义才修，修后必须全绿。
+        // 审计双档：executor 原件 result.json 一字不动，修正后对象侧写 result.normalized.json + host-assist 事件。
+        const norm = result ? normalizeResult(result, { gitTrack }) : { result: null, fixes: [], changed: false };
+        if (norm.changed) {
+          atomicWriteJson(path.join(runDir, 'result.normalized.json'), norm.result);
+          appendEvent(home, { type: 'host-assist', actor: 'engine', taskId: card.id, runNo: entry.runNo, fixes: norm.fixes });
+          result = norm.result;
+          violations = [];
+        }
+      }
+      if (violations.length) {
+        // 契约底线④：解析失败=interrupted 重派（附前次产物引用由 dispatch 负责）；
+        // 违规明细落 runs/<n>/violations.json——重派任务书渲染，执行器自纠有明确靶子
+        atomicWriteJson(path.join(runDir, 'violations.json'), { runNo: entry.runNo, violations, at: new Date().toISOString() });
         releaseAllForTask(home, entry.taskId, { reason: 'fold' });
         transition(home, card.id, 'approved');
         appendEvent(home, { type: 'folded', actor: 'engine', taskId: card.id, runNo: entry.runNo, outcome: 'interrupted', reason: violations.join(';').slice(0, 300) });

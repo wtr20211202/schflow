@@ -22,4 +22,6 @@ L3 delegate 的 `{running, done, blocked, stale, dirty}` 中，除 `running`（�
 
 schema 严格校验（未知字段拒绝）；解析失败 = 该次尝试折叠为 interrupted，attempts+1 重派（附前次 runs/ 引用，契约底线④）。
 
+**形态规范化（宿主代收 L0，v1.0.26）**：校验违规时 fold 先过白名单机械修正（deliverables string[]→`[{path}]`/单对象→数组；status trim+小写归一；summary 数字/布尔→String）——修正后全绿则以修正件收编，落 `host-assist` 审计事件 + `result.normalized.json` 侧档（**executor 原件一字不动**）；白名单外（unknown-field/commit-required/语义类）不修，走 interrupted 重派，且违规清单落 `runs/<n>/violations.json`、重派任务书逐行渲染（执行器自纠有料可依）。
+
 **原子写要求（v1.0.13 落档）**：result.json 必须 tmp+rename 原子写——折叠程序与观测面并发读取，半行 JSON 视同解析失败。git 轨道任务的提交信息带 `(<id>)` 尾注（幂等重入的 grep 锚，ADR-0023）。

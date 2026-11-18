@@ -14,7 +14,7 @@
 
 ## 事件类型（封闭枚举）
 
-`task.created` · `status.changed{from,to}` · `dispatched` · `folded{outcome}` · `env.leased{env}` · `env.released{env}` · `verify.run{cmd,exitCode}` · `review.recorded{verdict}` · `merge.started{branch}` · `merge.done{branch,sha}`（**记分支 SHA**，防拿错 head 类事故可核对）· `merge.failed{branch,reason}` · `merge.ejected{branch,reason}`（复验失败弹出，P1-10）· `lock.acquired/released{name}` · `heartbeat.tick{gapMin}` · `note.appended`
+`task.created` · `status.changed{from,to}` · `dispatched` · `folded{outcome}` · `env.leased{env}` · `env.released{env}` · `verify.run{cmd,exitCode}` · `review.recorded{verdict}` · `merge.started{branch}` · `merge.done{branch,sha}`（**记分支 SHA**，防拿错 head 类事故可核对）· `merge.failed{branch,reason}` · `merge.ejected{branch,reason}`（复验失败弹出，P1-10）· `merge.auto-resolved{level}`（rebase 冲突自动恢复链自愈——level ∈ rebase-retry|semantic-union，v1.0.26）· `merge.resolved{verdict,rationale,judge}`（judge② L2 裁决应用成功——verdict ∈ adopt-theirs|adopt-ours|merge-both，v1.0.26）· `lock.acquired/released{name}` · `heartbeat.tick{gapMin}` · `note.appended` · `host-assist{runNo,fixes}`（宿主代收 L0——fold 机械修正执行器 result 形态的审计事件，原件零改动、修正侧写 result.normalized.json，v1.0.26）
 
 ## dispatched 专有字段（防漂移与审计的载体）
 

@@ -35,6 +35,7 @@ import { readEvents, appendEvent } from '../lib/events.mjs';
 import {
   git, gitOk, worktreeList, mergeWorktree, branchExists, isAncestor, removeWorktree, taskWorktree,
 } from '../lib/gitutil.mjs';
+import { resolveRebase } from '../lib/conflicto.mjs';
 import { emit, die, EXIT } from '../lib/out.mjs';
 
 // 出口扫描特征集（§5.2 对策 7——gitleaks 类的内置最小集；接入外部扫描器留位 Profile）
@@ -48,9 +49,18 @@ const SECRET_PATTERNS = [
   /\bsk-[A-Za-z0-9_-]{20,}\b/,
 ];
 
-const { values } = parseArgs({ options: { home: { type: 'string' }, json: { type: 'boolean' }, 'no-push': { type: 'boolean' } } });
+const { values } = parseArgs({ options: {
+  home: { type: 'string' }, json: { type: 'boolean' }, 'no-push': { type: 'boolean' },
+  // judge② 裁决旗标（--judge-resolve 才启用 L2；缺省零 LLM 面——拨盘模型不变）
+  'judge-resolve': { type: 'boolean' },
+  'judge-runner': { type: 'string' }, // claude | dsh | custom
+  'judge-runner-cmd': { type: 'string' }, // custom 的 argv JSON 数组，含 {prompt} 占位
+  'judge-model': { type: 'string' },
+  'judge-timeout-sec': { type: 'string' },
+} });
 const home = resolveHome(values.home);
 const p = paths(home);
+const judge = buildJudge(values); // 参数校验先于取锁——拒绝面不残留锁目录
 const writeLock = acquireLock(p.writeLock);
 if (!writeLock) die(EXIT.BUSY, { text: 'merge: HOME 写锁忙——稍后重试' });
 
@@ -63,7 +73,7 @@ try {
     const lock = acquireLock(path.join(p.locks, lockName));
     if (!lock) { results.push({ queue: key, outcome: 'lock-busy' }); continue; }
     try {
-      results.push(...drainQueue(home, repo, base, entries.list, { push: !values['no-push'] }));
+      results.push(...drainQueue(home, repo, base, entries.list, { push: !values['no-push'], judge }));
     } finally {
       lock.release();
     }
@@ -78,6 +88,25 @@ emit({
     ? `merge: ${results.length} 项——\n${results.map((r) => `  - ${r.task ?? r.queue} ${r.outcome}${r.sha ? ` ${r.sha.slice(0, 10)}` : ''}${r.reason ? `（${r.reason}）` : ''}`).join('\n')}`
     : 'merge: 队列空'),
 });
+
+/** judge② 旗标组装：未加 --judge-resolve 时恒 null（零 LLM 缺省面）；custom 须给含 {prompt} 占位的 argv JSON 数组 */
+function buildJudge(values) {
+  if (!values['judge-resolve']) return null;
+  const runner = values['judge-runner'];
+  if (!['claude', 'dsh', 'custom'].includes(runner)) {
+    die(EXIT.REJECT, { text: 'merge: --judge-resolve 需要 --judge-runner <claude|dsh|custom>' });
+  }
+  let runnerCmd = null;
+  if (runner === 'custom') {
+    try { runnerCmd = JSON.parse(values['judge-runner-cmd'] ?? 'null'); } catch {
+      die(EXIT.REJECT, { text: 'merge: --judge-runner-cmd 须为 JSON 数组（如 ["node","judge.mjs","{prompt}"]）' });
+    }
+    if (!Array.isArray(runnerCmd) || !runnerCmd.length || !runnerCmd.some((a) => String(a).includes('{prompt}'))) {
+      die(EXIT.REJECT, { text: 'merge: --judge-runner-cmd 须为非空 argv 数组且含 {prompt} 占位（提示词文件路径）' });
+    }
+  }
+  return { runner, runnerCmd, model: values['judge-model'] ?? null, timeoutSec: Number(values['judge-timeout-sec'] ?? '600') };
+}
 
 /** 队列重建：事件回放（folded done 未 merge.done 的 open 任务）按 (repo,base) 分键，FIFO=folded seq */
 function buildQueues(h) {
@@ -107,7 +136,7 @@ function buildQueues(h) {
   return queues;
 }
 
-function drainQueue(home, repo, base, list, { push }) {
+function drainQueue(home, repo, base, list, { push, judge }) {
   const out = [];
   const mw = mergeWorktree(repo, base);
   const branch = (id) => `schflow/${id}`;
@@ -153,13 +182,15 @@ function drainQueue(home, repo, base, list, { push }) {
     const fork = gitOk(repo, ['merge-base', origTip, baseTip]);
     const zeroIntersection = fork === baseTip;
 
-    // ① rebase：detached 检出分支尖 → rebase baseTip；冲突=ejected 同族（本支回炉，队列继续）
+    // ① rebase：detached 检出分支尖 → resolveRebase 三级恢复链（L0 机械重试→L1 非交叠语义合并
+    //    →L2 judge② 裁决，core/lib/conflicto.mjs）；三级全败=ejected 同族（本支回炉，队列继续）。
+    //    成功后起的既有流程（分支推进/复验/合并/出口扫描/推送）一字不动——复验链是 L1/L2 的语义兜底。
     git(mw, ['checkout', '--detach', branch(id)]);
-    const reb = git(mw, ['rebase', baseTip], { allowFail: true });
+    const reb = resolveRebase({ home, repo, mw, baseTip, card, judge });
     if (!reb.ok) {
       git(mw, ['rebase', '--abort'], { allowFail: true });
       git(mw, ['checkout', '--detach', baseTip], { allowFail: true });
-      eject(home, id, 'rebase-conflict', out);
+      eject(home, id, `rebase-conflict:${reb.reason ?? 'unknown'}`, out);
       continue;
     }
     const rebasedTip = gitOk(mw, ['rev-parse', 'HEAD']);

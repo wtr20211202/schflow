@@ -18,8 +18,11 @@ import test from 'node:test';
 import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
+import { spawn } from 'node:child_process';
+import { once } from 'node:events';
 import { acquireLock } from '../../lib/lock.mjs';
-import { tmpdir } from '../helpers.mjs';
+import { pidAlive } from '../../lib/runner.mjs';
+import { tmpdir, sleep } from '../helpers.mjs';
 
 function foreignLock(dir, ageMs = 0) {
   fs.mkdirSync(dir);
@@ -69,4 +72,75 @@ test('锁：holder pid 已死的残留（Windows delete-pending 幽灵/崩溃 ho
   assert.ok(h, 'holder pid 已死 → 残留坐实，立即偷移（而非按新鲜 mtime 忙等）');
   h.release();
   assert.equal(fs.existsSync(dir), false, '偷移后目录清走');
+});
+
+// —— pid 活性三态（P-20261118-7）：spawn 真子进程钉死「活=忙 / 死=立即偷 / 无 holder=崩溃残留」
+//    鉴别契约（v1.0.24 Windows delete-pending 实证的回归钉）。held 表是模块级 Map：
+//    各用例锁目录路径互不相同，防进程内串扰。
+
+/** 起一个长睡 node 子进程（活 pid 夹具）；返回 child（调用方负责收尾 kill） */
+function spawnSleeper() {
+  return spawn(process.execPath, ['-e', 'setTimeout(()=>{},30000)'], { stdio: 'ignore' });
+}
+
+/** 轮询等待 pid 确死（Windows TerminateProcess 异步完成，kill 返回≠句柄即刻消失） */
+async function waitDead(pid, timeoutMs = 5000) {
+  const deadline = Date.now() + timeoutMs;
+  while (pidAlive(pid) && Date.now() < deadline) await sleep(50);
+  return !pidAlive(pid);
+}
+
+test('锁三态①：活 pid 持有=忙（不偷，真持有者仍在临界区）', async () => {
+  const dir = path.join(tmpdir(), 'alive-holder.lock');
+  const child = spawnSleeper();
+  try {
+    assert.ok(pidAlive(child.pid), '夹具前置：子进程活着');
+    fs.mkdirSync(dir);
+    fs.writeFileSync(path.join(dir, 'holder.json'), JSON.stringify({ pid: child.pid }));
+    // mtime 新鲜 + holder 活 → 必须返回 null（忙）；活持有者不得因陈旧窗短而被偷
+    assert.equal(acquireLock(dir, { staleMs: 60_000 }), null, '活 pid 持有=忙，不得偷');
+  } finally {
+    child.kill();
+    await once(child, 'exit'); // 兜底收尾：不留泄漏子进程
+  }
+});
+
+test('锁三态②：死 pid 残留=立即偷（不等 10min 陈旧窗）', async () => {
+  const dir = path.join(tmpdir(), 'dead-holder.lock');
+  const child = spawnSleeper();
+  const deadPid = child.pid;
+  child.kill();
+  await once(child, 'exit');
+  assert.ok(await waitDead(deadPid), '夹具前置：被杀 pid 已死');
+
+  fs.mkdirSync(dir);
+  fs.writeFileSync(path.join(dir, 'holder.json'), JSON.stringify({ pid: deadPid })); // mtime 新鲜
+  const t0 = Date.now();
+  const h = acquireLock(dir, { staleMs: 10 * 60_000 }); // 按陈旧窗逻辑应忙——pid 活性坐实残留即偷
+  assert.ok(h, '死 pid → 崩溃/幽灵残留坐实，立即偷移');
+  assert.ok(Date.now() - t0 < 5_000, '不得等待陈旧窗（staleMs=10min）');
+  h.release();
+  assert.equal(fs.existsSync(dir), false, '偷移后目录清走');
+});
+
+test('锁三态③：无 holder + 宽限窗（>1.5s）已过=崩溃残留，偷', () => {
+  const dir = path.join(tmpdir(), 'no-holder.lock');
+  fs.mkdirSync(dir); // 不放 holder.json——真持有者 mkdir→栽 holder 是毫秒窗，宽限过后仍无=崩溃残留
+  const old = new Date(Date.now() - 2_000);
+  fs.utimesSync(dir, old, old); // 回填 mtime 到 2s 前（>1.5s 宽限）
+  const h = acquireLock(dir, { staleMs: 10 * 60_000 });
+  assert.ok(h, '宽限窗已过仍无 holder → 偷锁成功');
+  h.release();
+});
+
+test('锁：release 清理 held 表，同路径可重取', () => {
+  const dir = path.join(tmpdir(), 'reacquire.lock');
+  const h1 = acquireLock(dir);
+  assert.ok(h1);
+  h1.release();
+  assert.equal(fs.existsSync(dir), false, '释放即清目录');
+  const h2 = acquireLock(dir); // held 表已清——走全新获取而非复用旧句柄
+  assert.ok(h2, 'release 后同路径可重取');
+  assert.notEqual(h2, h1, '新句柄，非进程内重入复用');
+  h2.release();
 });
