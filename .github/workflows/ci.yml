@@ -54,10 +54,12 @@ jobs:
           git commit -m "npm test diagnostics: ${{ matrix.os }} node${{ matrix.node }} (run ${{ github.run_id }})" || exit 0
           git push origin ci-diagnostics || git push -f origin ci-diagnostics
 
-  # macOS 单作业内串行测双版本——实测 macOS 机器供给紧张（并行/串行矩阵的饥饿腿
-  # 拿不到 runner：runner_name 空、零步骤、被取消；重叠 run 竞争更甚）。单作业每轮
-  # 只请求一台机器，供给确定；node 20→22 两遍 setup-node+install+test 顺序覆盖。
+  # macOS 单作业内串行测双版本（node 20→22 同机顺序覆盖——免费池 macOS 供给间歇，
+  # 实测 solo 作业也会饿 20min 被取消）。continue-on-error：结果 advisory 不阻塞发布
+  # （Codecombo 先例：其 CI 仅 ubuntu+windows；本仓 dev 面同为 Windows+Linux，mac 兼容
+  # 证据在池子供给时随 artifacts/diagnostics 累积，发布硬门=ubuntu+windows）。
   macos:
+    continue-on-error: true
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
