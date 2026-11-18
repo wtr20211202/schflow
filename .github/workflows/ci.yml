@@ -54,34 +54,37 @@ jobs:
           git commit -m "npm test diagnostics: ${{ matrix.os }} node${{ matrix.node }} (run ${{ github.run_id }})" || exit 0
           git push origin ci-diagnostics || git push -f origin ci-diagnostics
 
-  # macOS 单独作业串行（max-parallel:1）——实测本账号每轮只供给一台 macOS 机器：
-  # 并行双腿时第二条永远拿不到 runner（runner_name 空、零步骤、~15min 被取消，
-  # 三轮两标签组合复现）；串行让第二条排队等第一条完成，不再空转。
+  # macOS 单作业内串行测双版本——实测 macOS 机器供给紧张（并行/串行矩阵的饥饿腿
+  # 拿不到 runner：runner_name 空、零步骤、被取消；重叠 run 竞争更甚）。单作业每轮
+  # 只请求一台机器，供给确定；node 20→22 两遍 setup-node+install+test 顺序覆盖。
   macos:
-    strategy:
-      fail-fast: false
-      max-parallel: 1
-      matrix:
-        node: [20, 22]
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node }}
-      - name: Install deps
+          node-version: 20
+      - name: Install deps (node 20)
         run: npm install --no-audit --no-fund
-      - name: Test (unit + golden property scenarios, no LLM)
+      - name: Test (node 20)
         shell: bash
-        run: set -o pipefail; npm test 2>&1 | tee npm-test.log
+        run: set -o pipefail; npm test 2>&1 | tee npm-test-node20.log
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install deps (node 22)
+        run: npm install --no-audit --no-fund
+      - name: Test (node 22)
+        shell: bash
+        run: set -o pipefail; npm test 2>&1 | tee npm-test-node22.log
       - name: Typecheck placeholder
         run: npm run typecheck --if-present
-      - name: Upload test log
+      - name: Upload test logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: npm-test-log-macos15-node${{ matrix.node }}
-          path: npm-test.log
+          name: npm-test-log-macos15
+          path: npm-test-node*.log
           retention-days: 7
       - name: Push test diagnostics
         if: failure()
@@ -92,7 +95,7 @@ jobs:
           git fetch origin ci-diagnostics 2>/dev/null || true
           git checkout -B ci-diagnostics origin/ci-diagnostics 2>/dev/null || git checkout -B ci-diagnostics
           mkdir -p diagnostics
-          cp npm-test.log "diagnostics/npm-test-macos15-node${{ matrix.node }}.log"
+          cp npm-test-node*.log diagnostics/
           git add diagnostics/
-          git commit -m "npm test diagnostics: macos15 node${{ matrix.node }} (run ${{ github.run_id }})" || exit 0
+          git commit -m "npm test diagnostics: macos15 (run ${{ github.run_id }})" || exit 0
           git push origin ci-diagnostics || git push -f origin ci-diagnostics
