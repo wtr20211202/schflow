@@ -10,8 +10,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        node: [20, 22]
+        # macOS 钉显式版本且双腿分池（macos-14/15）——浮动标签 macos-latest 两轮只供给了一条腿
+        # 的机器（另一腿 runner_name 空、零步骤即取消，2026-11-18 实测两连）；分池消除同标签竞争
+        include:
+          - { os: ubuntu-latest, node: 20 }
+          - { os: ubuntu-latest, node: 22 }
+          - { os: windows-latest, node: 20 }
+          - { os: windows-latest, node: 22 }
+          - { os: macos-14, node: 20 }
+          - { os: macos-15, node: 22 }
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
