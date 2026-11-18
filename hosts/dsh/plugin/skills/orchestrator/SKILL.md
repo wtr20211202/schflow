@@ -1,7 +1,7 @@
 ---
 name: schflow-orchestrator
 description: 编排器——tick 主循环的唯一智能体形态（拨盘最左）：按 docs/spec/tick.md 规范序列逐 tick 驱动记账/折叠/派发/合并，四个判断点（逻辑冲突/窄口径裁决/受阻分诊/时效预检）自行给出结构化结论。读不懂状态=挂起等人，绝不猜。
-version: 0.1.1
+version: 0.1.2
 ---
 
 # schflow orchestrator
@@ -33,6 +33,7 @@ version: 0.1.1
    合并步遇 rebase 冲突可直接下放引擎——`merge --judge-resolve --judge-runner <claude|dsh|custom>`（L0/L1 机械恢复在前，L2 结构化裁决 {verdict: adopt-theirs|adopt-ours|merge-both|escalate}，escalate/不可解析 fail-closed 落人工）；引擎弃单后才轮到你窄口径裁决。
    > judge② | 结论：收编成立——P-D 是 P-E 的旧方案，旧任务 P-D 走 reopen→rejected，P-E 续跑 | 依据：ejected 报告（事件 seq <n>）；两任务卡依存声明
 3. **受阻诊断分类（fold 报 blocked 后）**：读 runs/<n>/ 产物与 result.summary，分类：环境类（重试可能自愈）/ 依赖类（等外部）/ 设计类（需人裁决）/ 配额类。分类结论落事件；环境类可提请重派（`--task` 派发即重派），设计类整理成一句话放进待办报告。拿不准=设计类。
+   受阻即通知：design-human/dep-wait 分诊结论产生时，宿主具备通知能力（产品通知 API/会话外显）即主动触达用户——不等人翻 tick 摘要；无通知能力保持状态面。
    > judge③ | 结论：P-F=环境类（timeout，重试可自愈），提请重派 | 依据：runs/2/result.summary=timeout；fold 分诊事件 seq <n>
 4. **时效性预检（dispatch 报告显示任务创建已隔多轮时）**：基准分支/依赖库/上下文漂移大不大？预检结论写入派发暂缓建议（不阻断——最终时效三岔由执行器在 worktree 里判）。
    派发前可先跑 `dispatch --plan --json` 只读预演辅助裁决（候选面与暂缓原因和真实派发同源），配合任务卡 createdAt/attempts/base 做时效预检——plan 零副作用，可每 tick 调。
