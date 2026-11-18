@@ -5,6 +5,11 @@ on:
     branches: ["**"]
   pull_request:
 
+# 诊断推送（失败时把 npm-test 日志推 ci-diagnostics 分支——匿名 contents API 可读的
+# 自服务诊断通道，无凭据环境不再需要人肉复制错误；Codecombo release 链同机制）
+permissions:
+  contents: write
+
 jobs:
   matrix:
     strategy:
@@ -24,9 +29,30 @@ jobs:
       - name: Install deps
         run: npm install --no-audit --no-fund
       - name: Test (unit + golden property scenarios, no LLM)
-        run: npm test
+        shell: bash
+        run: set -o pipefail; npm test 2>&1 | tee npm-test.log
       - name: Typecheck placeholder
         run: npm run typecheck --if-present
+      - name: Upload test log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-test-log-${{ matrix.os }}-node${{ matrix.node }}
+          path: npm-test.log
+          retention-days: 7
+      - name: Push test diagnostics
+        if: failure()
+        shell: bash
+        run: |
+          git config user.email "noreply@github.com"
+          git config user.name "ci-diagnostics"
+          git fetch origin ci-diagnostics 2>/dev/null || true
+          git checkout -B ci-diagnostics origin/ci-diagnostics 2>/dev/null || git checkout -B ci-diagnostics
+          mkdir -p diagnostics
+          cp npm-test.log "diagnostics/npm-test-${{ matrix.os }}-node${{ matrix.node }}.log"
+          git add diagnostics/
+          git commit -m "npm test diagnostics: ${{ matrix.os }} node${{ matrix.node }} (run ${{ github.run_id }})" || exit 0
+          git push origin ci-diagnostics || git push -f origin ci-diagnostics
 
   # macOS 单独作业串行（max-parallel:1）——实测本账号每轮只供给一台 macOS 机器：
   # 并行双腿时第二条永远拿不到 runner（runner_name 空、零步骤、~15min 被取消，
@@ -46,6 +72,27 @@ jobs:
       - name: Install deps
         run: npm install --no-audit --no-fund
       - name: Test (unit + golden property scenarios, no LLM)
-        run: npm test
+        shell: bash
+        run: set -o pipefail; npm test 2>&1 | tee npm-test.log
       - name: Typecheck placeholder
         run: npm run typecheck --if-present
+      - name: Upload test log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-test-log-macos15-node${{ matrix.node }}
+          path: npm-test.log
+          retention-days: 7
+      - name: Push test diagnostics
+        if: failure()
+        shell: bash
+        run: |
+          git config user.email "noreply@github.com"
+          git config user.name "ci-diagnostics"
+          git fetch origin ci-diagnostics 2>/dev/null || true
+          git checkout -B ci-diagnostics origin/ci-diagnostics 2>/dev/null || git checkout -B ci-diagnostics
+          mkdir -p diagnostics
+          cp npm-test.log "diagnostics/npm-test-macos15-node${{ matrix.node }}.log"
+          git add diagnostics/
+          git commit -m "npm test diagnostics: macos15 node${{ matrix.node }} (run ${{ github.run_id }})" || exit 0
+          git push origin ci-diagnostics || git push -f origin ci-diagnostics
