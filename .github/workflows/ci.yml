@@ -10,16 +10,34 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # macOS 钉显式版本且双腿分池（macos-14/15）——浮动标签 macos-latest 两轮只供给了一条腿
-        # 的机器（另一腿 runner_name 空、零步骤即取消，2026-11-18 实测两连）；分池消除同标签竞争
         include:
           - { os: ubuntu-latest, node: 20 }
           - { os: ubuntu-latest, node: 22 }
           - { os: windows-latest, node: 20 }
           - { os: windows-latest, node: 22 }
-          - { os: macos-14, node: 20 }
-          - { os: macos-15, node: 22 }
     runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Install deps
+        run: npm install --no-audit --no-fund
+      - name: Test (unit + golden property scenarios, no LLM)
+        run: npm test
+      - name: Typecheck placeholder
+        run: npm run typecheck --if-present
+
+  # macOS 单独作业串行（max-parallel:1）——实测本账号每轮只供给一台 macOS 机器：
+  # 并行双腿时第二条永远拿不到 runner（runner_name 空、零步骤、~15min 被取消，
+  # 三轮两标签组合复现）；串行让第二条排队等第一条完成，不再空转。
+  macos:
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        node: [20, 22]
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
