@@ -99,7 +99,7 @@ c57d30306e70d9a428cb913c82405e5c2488d7d99c63d67460ef42c5ce0156a7 *./docs/adr/ADR
 c5558e10b085f6dbdac0362554fb3f39c43b587809e22d09e6a85bf23f398dc8 *./docs/adr/ADR-0030-on-demand-full-e2e.md
 fb09d15252b9a6c9e7086ecbf455ea643de3b973d4b47b16c3dd6b4177394fc0 *./docs/adr/ADR-0031-fold-timing-and-gate-relief.md
 16085b2f525a9a36066385315a2c29a22b05567869da6128de618853a1df5f30 *./docs/adr/README.md
-a0142b40bed4b9d2cb3c3bcc5262bcdc62cc271bcfb77906f070dfd6a1ff4558 *./docs/design.md
+0241741f2d6e3d7f01ce3e2c905f01204989972d39a98c547b55fe00ec2fb7be *./docs/design.md
 b5c2cf5a87dea37668a00256b61bbd08ce1dbdbfb49d9fde5543ce0622d67c64 *./docs/spec/events.md
 1c6088d5c0fb760689d109cafe2d70b1f10007df1fefe478c4d56ef07e204cec *./docs/spec/programs.md
 fe53698eb45f8211b54262a3a82079cc6af4c3afc4339e09a201d06fd7f029e5 *./docs/spec/result.md
@@ -116,7 +116,7 @@ b7b242d364b11a82c4de3cecb7a8726c7d15afd1a24730efcf07aca2d2c0af16 *./hosts/claude
 6fdc4d7e65c1c356b42a25c6bb0213767cc7b701656cfadfec596c69518bcec7 *./hosts/claude-code/commands/board.md
 fa6f35320c8fadf74e566a87068032edc244179f927239c462311bfccc6e96d8 *./hosts/claude-code/commands/propose.md
 5a6bcb22c849940dc886e0b2226bccb86ff16208e264cf045209c3d9a2ce7894 *./hosts/claude-code/commands/tick.md
-46939dfe10f7a7527123f65e9f7a8b3a769fbf601a286a1fb86d7737117b8cb8 *./hosts/claude-code/skills/executor/SKILL.md
+afdddff99ed1c082b77127b10cdbcaf71ea3a0e036dc13c58bc9359ea66c1605 *./hosts/claude-code/skills/executor/SKILL.md
 d1815a3cb1accc50af0f29ea87ba248bea65ec4b7fb0922ad94734e108ee5f05 *./hosts/claude-code/skills/improve/SKILL.md
 85b8a7c08d707229d298680d31d9a166b817e79c3c79ee4f3440ed5e979a412c *./hosts/claude-code/skills/orchestrator/SKILL.md
 1269b0d4380eee771007b377e2476d00abd2c05b5b79e979bb20dbaa708f46dd *./hosts/claude-code/skills/proposer/SKILL.md
@@ -126,7 +126,7 @@ d1815a3cb1accc50af0f29ea87ba248bea65ec4b7fb0922ad94734e108ee5f05 *./hosts/claude
 5ae30ccd5b7d08274f9595a543a118f82957da9962627328671bdac7d49c2b38 *./hosts/dsh/plugin/README.md
 26caf0b9c3f18824717f2546168dce19142d0e11a89b4fde2d244347fb7e8370 *./hosts/dsh/plugin/cordis.patch.yml
 612968f2c241e4d37d788e960fd13f0ccfe62e10c156bafd608800bef38b7556 *./hosts/dsh/plugin/package.json
-46939dfe10f7a7527123f65e9f7a8b3a769fbf601a286a1fb86d7737117b8cb8 *./hosts/dsh/plugin/skills/executor/SKILL.md
+afdddff99ed1c082b77127b10cdbcaf71ea3a0e036dc13c58bc9359ea66c1605 *./hosts/dsh/plugin/skills/executor/SKILL.md
 d1815a3cb1accc50af0f29ea87ba248bea65ec4b7fb0922ad94734e108ee5f05 *./hosts/dsh/plugin/skills/improve/SKILL.md
 85b8a7c08d707229d298680d31d9a166b817e79c3c79ee4f3440ed5e979a412c *./hosts/dsh/plugin/skills/orchestrator/SKILL.md
 1269b0d4380eee771007b377e2476d00abd2c05b5b79e979bb20dbaa708f46dd *./hosts/dsh/plugin/skills/proposer/SKILL.md
@@ -139,7 +139,7 @@ dc9dce600721998af0d824227461fb7c05d0ac216a761b2d077b34df4e774b92 *./hosts/zcode/
 c03c80915732e107dea3ccc7bc831d37743a3e7e4b730e465643106386642402 *./skills/directions/human.yaml
 d0c73006af005f76202e240c42cc8cc404a235da1848dd0c25b11e4c54a92444 *./skills/directions/industry.yaml
 f74a0d0db271d90cefd9ae404fdda5323971daf801cf31880c3d32900bb48161 *./skills/directions/polish.yaml
-46939dfe10f7a7527123f65e9f7a8b3a769fbf601a286a1fb86d7737117b8cb8 *./skills/executor/SKILL.md
+afdddff99ed1c082b77127b10cdbcaf71ea3a0e036dc13c58bc9359ea66c1605 *./skills/executor/SKILL.md
 d1815a3cb1accc50af0f29ea87ba248bea65ec4b7fb0922ad94734e108ee5f05 *./skills/improve/SKILL.md
 85b8a7c08d707229d298680d31d9a166b817e79c3c79ee4f3440ed5e979a412c *./skills/orchestrator/SKILL.md
 1269b0d4380eee771007b377e2476d00abd2c05b5b79e979bb20dbaa708f46dd *./skills/proposer/SKILL.md
