@@ -69,6 +69,38 @@ node core/programs/fold.mjs --json && node core/programs/merge.mjs --json
 
 > 完整生命周期——提案 → 评审闸 → 并行执行 → 合并队列 → 推送——见[设计文档](docs/design.md)与宿主说明：[claude code](hosts/claude-code/README.md) · [dsh](hosts/dsh/README.md) · [ZCode](hosts/zcode/README.md)。
 
+## 接入一个项目
+
+任务跑在你登记到 `$SCHFLOW_HOME/projects/` 的仓库上——每项目一个目录，内放一份 `schflow.yaml`：
+
+```yaml
+# ~/.schflow/projects/my-app/schflow.yaml
+repo: /absolute/path/to/my-app   # 绝对路径——worktree 与合并都在该仓库内发生
+default-base: main               # 任务卡未指明 base 时的默认基线分支
+verify:                          # 合并闸命令链（≥ 1 条命令）
+  - cmd: npm test
+```
+
+字段全集见 [docs/design.md](docs/design.md) §6.1/§7；验证环境由 `envs.yaml` 租约供给——任务声明 `env:` 即派发必经租约（§8）。冒烟：立一条 docs 类提案走全链——待决策 → 批准 → 派发 → 折叠 → 合并。
+
+## 扩展
+
+骨架刻意小——流程模板之外一切变量外置。模型够强就少加约束，模型弱就挂更多方法论技能（如第三方 skill 包），两种都合法。
+
+五层插槽，由轻到重——全部是「加文件/改配置」，零改 skill 本体（正典：[docs/design.md](docs/design.md) §7）：
+
+| 插槽 | 动作 | 典型用途 | 侵入度 |
+|---|---|---|---|
+| 提示词补充（`overrides/*.md`） | 外挂提示词片段按声明点合入 | 微调行为细节、加业务背景 | 最轻 |
+| mounts 挂载 | Profile 里声明要注入的知识目录/第三方 skill 包 | 用别人的方法论讨论方案/执行 | 轻 |
+| 阶段文件 | 在执行序列里插入/替换阶段 | 插入自己的方案讨论/验收流程 | 中 |
+| direction 文件 | 加 `directions/<name>.yaml` 开一个新提案方向 | 新增提案员方向（安全审计、测试补强…） | 中 |
+| delegate 委托 | dispatch/poll 交给你已有的工作流 | 整体接管执行，引擎只记账 | 重 |
+
+挂第三方 skill 包，每宿主一行：**dsh**——包放 `~/.schflow/skills/`（插件已接入该根）或用 `SCHFLOW_SKILLS_DIR` 指向；**claude code**——按其官方插件体系自行安装（会话自然可见），schflow 侧用 Profile `mounts` 声明注入任务；**ZCode**——同理走 `mounts`。
+
+强模型裁剪：executor/orchestrator 内置纪律（视觉自查、结构四问等）全部是条件式提示词层——嫌重就用 `promptOverrides` 覆盖削减（第一层插槽）；引擎强制面只有安全底线（产物契约、fail-closed、红线），那部分不可裁。
+
 ## 宿主支持
 
 | 宿主 | 安装 | 执行器家族 | 说明 |

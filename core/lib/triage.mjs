@@ -31,7 +31,7 @@ export function triageBlocked(result) {
     return { triage: TRIAGE.ENV, signals: [`flags:${flags.quota ? 'quota' : flags.retryable ? 'retryable' : 'transient'}`], hint: '环境类受阻：dispatch --retry <id> 原子重派（回炉+派发一体）；建议等配额窗口（5h 限额实测）' };
   }
   if (flags.needsHuman || flags.designDecision) {
-    return { triage: TRIAGE.DESIGN, signals: ['flags:needsHuman'], hint: '设计类受阻：人工裁决（decide 面）；裁决后 blocked→approved 回炉' };
+    return { triage: TRIAGE.DESIGN, signals: ['flags:needsHuman'], hint: '设计类受阻：人工裁决（decide --task <id> --to approved 回炉 / --to rejected 关闭）' };
   }
 
   const hit = (list) => list.filter((k) => text.includes(k));
@@ -40,11 +40,11 @@ export function triageBlocked(result) {
   const depHits = hit(DEP_SIGNALS);
   // 双命中时取更具体的依赖类（凭据/权限问题重试没用）
   if (depHits.length) {
-    return { triage: TRIAGE.DEP, signals: depHits, hint: '依赖类受阻：需要补凭据/等外部条件——人工介入（blocked→approved 在条件具备后回炉）' };
+    return { triage: TRIAGE.DEP, signals: depHits, hint: '依赖类受阻：需要补凭据/等外部条件——人工介入（条件具备后 decide --task <id> --to approved 回炉）' };
   }
   if (envHits.length) {
     return { triage: TRIAGE.ENV, signals: envHits, hint: '环境类受阻：dispatch --retry <id> 原子重派（回炉+派发一体）；建议等配额窗口或网络恢复' };
   }
   // 判不了 → 设计类（fail-closed 缺省：转人，绝不自动重试循环）
-  return { triage: TRIAGE.DESIGN, signals: [], hint: '分诊信号不足：按设计类转人（blocked→approved 回炉或 rejected 关闭）' };
+  return { triage: TRIAGE.DESIGN, signals: [], hint: '分诊信号不足：按设计类转人（decide --task <id> --to approved 回炉 / --to rejected 关闭）' };
 }

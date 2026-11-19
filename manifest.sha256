@@ -5,10 +5,10 @@ fbb87bedc2547f38f12c655e34a4b44f568aa0e5e40d77b14d75bb5a1079a347 *./.editorconfi
 5db02f8d7bc76347e7f489d73c76192b0ff5bc1b929836dfb6a832e25bb3f2e5 *./.gitignore
 8927aa8e72907d264d4b809b6e2d536e44688db6161967000cd18b7c349424d2 *./CONTRIBUTING.md
 0837bbcec0f5def4f6830793a2c8449b0330fea930efc1070f70125f5189344c *./LICENSE
-cf56944094a28c8cd7378f55295ad936c64d9850065b22b8561a097b98564f7a *./README.md
-66c264fd693a2c0708bd49d30d4013c8e4602041caea83459396d7248b6be51d *./README.zh-CN.md
+2230cc49679ec91a305c1951e96030acac8582c03b77596f8761a6fea9e15a48 *./README.md
+06f594b71b7b78a1f6f2171ab53c8d87947cf69bcd2a7dab738fa767f7c9c4d3 *./README.zh-CN.md
 189bf5dfd9e221202141724abb2c42eef9bcd21d5570e237f92315f3c6013058 *./bin/schflow.ts
-a56e6ad91f8fb9e0fe0d4ffa98eb8c271d422e54c0c1fc4325c6193e245f674d *./core/README.md
+adab6d2221fa14ab7fa343022ef07de05d986530fcacb1d97a1ae37aac1e7580 *./core/README.md
 74b617233a0667e9abbcab47f55756af5f6fc3fe865db03f831f6bd7a11962ca *./core/lib/atomic.mjs
 02a06157d3ad183177e651f06fd1952065fca056e965720f39e48d4232ba717b *./core/lib/conflicto.mjs
 7072bc9e9e5526806dc72f8b4306d9923889fe2568f4cc5129279e1e7ffd9f1a *./core/lib/directions.mjs
@@ -26,8 +26,9 @@ e2ad5dbb2f0e894d6d2247fd9e514017322c786ac3d345acdfa664f2a385fffe *./core/lib/run
 962707edabe7237e8c6a203cdc9a97ce3472b742c3b35561f4bb569d044e2d7c *./core/lib/store.mjs
 d803c0287acb9e167fe87d67b96795648a6f7fff125a65e50585a0f3c892cc52 *./core/lib/taskbook.mjs
 008ee23ecfe7731c90340de0c9af63b7e21afba075fd1c1e08d1f7a8658eafa9 *./core/lib/taskcard.mjs
-d9cb971503d4b9f6d53922806e6414a4b9a82a1ee4a738fda0ebd30c27315db2 *./core/lib/triage.mjs
+b5da938ee2d7669a506f2ea3b26d96d3ae52d8d8d13a45380465b2508d2430d9 *./core/lib/triage.mjs
 31ce0d086da2ca361be7d1e9b0f9ab7e366be4129081d345afffcc5973cae564 *./core/lib/yamlfile.mjs
+c9799ad92a6fb61e02357b26895083544cba35e699ada3e5514ff30201563753 *./core/programs/decide.mjs
 6cffcf0f1033d9da30b657af48870727776f451aa1c0a03b449509079757ab18 *./core/programs/dispatch.mjs
 0c1b893c4f35cae4ea646337b79f53939ef0865a77be5f2b23eb37c3138b49a2 *./core/programs/dup-check.mjs
 0f00910410c40d00fdd169b50f22dbeee5e3cd1a7b7fb3575b4bc593555fe218 *./core/programs/event.mjs
@@ -46,6 +47,7 @@ c196bbd64cd00a575d20578443209c4d40999f95d1597829426b02825b44dbf0 *./core/test/fi
 85ba86d5ea3439795df80010bd8e331f04b5d0f4e6634c5fb333ca7cc38a9209 *./core/test/fixtures/judge-wsl-noise-draft-then-final.mjs
 fd3582d1e94baaf4edde5439a10783d1b16c3caed0d121e2ee63517f7dcbfec6 *./core/test/helpers.mjs
 1ffb485f954d3dcd86dede0ce4f57500a2e2fd13db4438e28b6e04c94a384a74 *./core/test/integration/array-runner.integration.test.mjs
+8a430c8b2e08beaacb6e0e62cc5afbc4caba4ae3e29a239c13b671c4f50c0afc *./core/test/integration/decide.integration.test.mjs
 3490eb643a5e8e0e54b0f97dfacf7f39b4b508087d852fe299327f60f19cb53d *./core/test/integration/env-lease.integration.test.mjs
 d7ca4883b6dbc9727da99c9b8e1e7b7c6a6ddf46608f423cd18b5176b992e910 *./core/test/integration/failure-paths.integration.test.mjs
 41ffb5c296e281a140b1ec4196277e825f4b7771fee959f6358a5bd11d2663d0 *./core/test/integration/fold-normalize.integration.test.mjs
@@ -99,11 +101,11 @@ c57d30306e70d9a428cb913c82405e5c2488d7d99c63d67460ef42c5ce0156a7 *./docs/adr/ADR
 c5558e10b085f6dbdac0362554fb3f39c43b587809e22d09e6a85bf23f398dc8 *./docs/adr/ADR-0030-on-demand-full-e2e.md
 fb09d15252b9a6c9e7086ecbf455ea643de3b973d4b47b16c3dd6b4177394fc0 *./docs/adr/ADR-0031-fold-timing-and-gate-relief.md
 16085b2f525a9a36066385315a2c29a22b05567869da6128de618853a1df5f30 *./docs/adr/README.md
-d1dd2dbaf1a2e5bfea2d6ba1de2c9107a360a801e146a0c1d28fcf458190b278 *./docs/design.md
+6c4d879e4419cab8c4a804de1e2c4b3e92348f4da054262073b17d517a8e421a *./docs/design.md
 b5c2cf5a87dea37668a00256b61bbd08ce1dbdbfb49d9fde5543ce0622d67c64 *./docs/spec/events.md
 1c6088d5c0fb760689d109cafe2d70b1f10007df1fefe478c4d56ef07e204cec *./docs/spec/programs.md
 fe53698eb45f8211b54262a3a82079cc6af4c3afc4339e09a201d06fd7f029e5 *./docs/spec/result.md
-d7c4edfeeb1c8b9414340640d11556625d653761777b3bf233f9ad44fdf7979e *./docs/spec/task-card.md
+bcf87b6d2e077de0bff7ed2d6019748aacbd2065f6c2443963729a29dbbcf2a7 *./docs/spec/task-card.md
 17b18b27d760ce2a0fdcb0237e0a2ce2a939590b248c4ac23e16f8868653f7e6 *./docs/spec/tick.md
 c809266f3f52e703de2a8225e0094e534ed5c52ec1749ebcb11b3a659ce8437e *./examples/toyrepo/README.md
 66095cb3e7a9be5ad7dfc7e5a98883797aa5212dfb4da5235258fdd2d2d817fe *./golden/README.md
@@ -116,7 +118,7 @@ b83bff00c7323c7145267f1b1996f35c5dc7d66992cccd13de701eb158de0860 *./golden/judge
 6fdc4d7e65c1c356b42a25c6bb0213767cc7b701656cfadfec596c69518bcec7 *./hosts/claude-code/commands/board.md
 fa6f35320c8fadf74e566a87068032edc244179f927239c462311bfccc6e96d8 *./hosts/claude-code/commands/propose.md
 5a6bcb22c849940dc886e0b2226bccb86ff16208e264cf045209c3d9a2ce7894 *./hosts/claude-code/commands/tick.md
-584f3e817cf99fe6286d5081aaff56118996a54fd3ee1cd8c61088476cb93806 *./hosts/claude-code/skills/audit/SKILL.md
+256d171d4eed5124e279164cd05f6e503dda7135eb8fcb09637b9dca5892ba26 *./hosts/claude-code/skills/audit/SKILL.md
 ddad5c05ba43ce7fbf5f18b51085ab0043a91fb28f0a121524a732daa5607569 *./hosts/claude-code/skills/executor/SKILL.md
 d1815a3cb1accc50af0f29ea87ba248bea65ec4b7fb0922ad94734e108ee5f05 *./hosts/claude-code/skills/improve/SKILL.md
 85b8a7c08d707229d298680d31d9a166b817e79c3c79ee4f3440ed5e979a412c *./hosts/claude-code/skills/orchestrator/SKILL.md
@@ -127,7 +129,7 @@ d1815a3cb1accc50af0f29ea87ba248bea65ec4b7fb0922ad94734e108ee5f05 *./hosts/claude
 5ae30ccd5b7d08274f9595a543a118f82957da9962627328671bdac7d49c2b38 *./hosts/dsh/plugin/README.md
 26caf0b9c3f18824717f2546168dce19142d0e11a89b4fde2d244347fb7e8370 *./hosts/dsh/plugin/cordis.patch.yml
 612968f2c241e4d37d788e960fd13f0ccfe62e10c156bafd608800bef38b7556 *./hosts/dsh/plugin/package.json
-584f3e817cf99fe6286d5081aaff56118996a54fd3ee1cd8c61088476cb93806 *./hosts/dsh/plugin/skills/audit/SKILL.md
+256d171d4eed5124e279164cd05f6e503dda7135eb8fcb09637b9dca5892ba26 *./hosts/dsh/plugin/skills/audit/SKILL.md
 ddad5c05ba43ce7fbf5f18b51085ab0043a91fb28f0a121524a732daa5607569 *./hosts/dsh/plugin/skills/executor/SKILL.md
 d1815a3cb1accc50af0f29ea87ba248bea65ec4b7fb0922ad94734e108ee5f05 *./hosts/dsh/plugin/skills/improve/SKILL.md
 85b8a7c08d707229d298680d31d9a166b817e79c3c79ee4f3440ed5e979a412c *./hosts/dsh/plugin/skills/orchestrator/SKILL.md
@@ -138,7 +140,7 @@ dc9dce600721998af0d824227461fb7c05d0ac216a761b2d077b34df4e774b92 *./hosts/zcode/
 2ecfc1d6dfcce1285772978f627feb38d667ecced1bf83539006d3cafe0b5215 *./hosts/zcode/cron/proposer-round.md
 29cd150a024ea01ab93dadbad37f62a189554aa498b6c7573b22b2e9ec9b0844 *./package-lock.json
 8181cd258639e3bd0d85a3ab2b54bbb203abde3a0ebe7938544a3f4f3a779299 *./package.json
-584f3e817cf99fe6286d5081aaff56118996a54fd3ee1cd8c61088476cb93806 *./skills/audit/SKILL.md
+256d171d4eed5124e279164cd05f6e503dda7135eb8fcb09637b9dca5892ba26 *./skills/audit/SKILL.md
 c03c80915732e107dea3ccc7bc831d37743a3e7e4b730e465643106386642402 *./skills/directions/human.yaml
 d0c73006af005f76202e240c42cc8cc404a235da1848dd0c25b11e4c54a92444 *./skills/directions/industry.yaml
 f74a0d0db271d90cefd9ae404fdda5323971daf801cf31880c3d32900bb48161 *./skills/directions/polish.yaml

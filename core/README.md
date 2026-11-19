@@ -25,6 +25,7 @@ node core/programs/dispatch.mjs --auto --json
 | `merge` | per-(repo,base) 合并队列 | 见下 |
 | `event` | 事件追加（信封自动补） | 封闭枚举；`--allow-unknown-type` 逃生口；`--list` 只读回放查询（`--type/--task/--last`，不取锁） |
 | `harvest` | 转生收割（八程序扩展⑨；tick 第 3b 步） | done 的 investigate/research 报告显式 `schflow:spawn` 块 → fix 提案转生（pending 走评审闸）；`--all` 扫 open+归档区，`harvestSource` 锚幂等（源归档后重跑不重发）；落盘前自过门禁（违规 76 不落盘） |
+| `decide` | 人工裁决面（九程序；judge③ 转人的人侧出口） | blocked/stale/rejected 三态的人侧裁决：`--task <id> --to approved\|rejected\|stale [--note <理由>]`——转移必经 transition（actor=human + note 落 status.changed 事件）；目标态不在转移表=76 并列合法去向；approved 后派发仍走 dispatch 全链守卫（不绕审批闸） |
 
 ### dispatch 补充
 

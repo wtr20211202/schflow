@@ -69,6 +69,38 @@ In an agent session (claude code or dsh, with the plugin installed), just ask: *
 
 > For the full lifecycle — proposal → review gate → parallel executors → merge queue → push — see the [design doc](docs/design.md) and the host READMEs: [claude code](hosts/claude-code/README.md) · [dsh](hosts/dsh/README.md) · [ZCode](hosts/zcode/README.md).
 
+## Register a project
+
+Tasks run against repos you register under `$SCHFLOW_HOME/projects/` — one directory per project, holding a `schflow.yaml`:
+
+```yaml
+# ~/.schflow/projects/my-app/schflow.yaml
+repo: /absolute/path/to/my-app   # absolute path — worktrees and merges happen inside this repo
+default-base: main               # base branch used when the task card names none
+verify:                          # command chain run at the merge gate (≥ 1 command)
+  - cmd: npm test
+```
+
+The full field set is in [docs/design.md](docs/design.md) §6.1/§7; verification environments are leased from `envs.yaml` — a task declaring `env:` must take the lease at dispatch (§8). Smoke test: file a `docs` proposal and walk the whole chain — pending → approved → dispatched → folded → merged.
+
+## Extending schflow
+
+The skeleton is deliberately small — everything outside the flow templates is externalized. Strong model, add fewer constraints; weak model, mount more methodology (e.g. third-party skill packs) — both are legitimate.
+
+Five slots, lightest to heaviest — all are "add a file / edit a config", zero changes to skill bodies (canonical: [docs/design.md](docs/design.md) §7):
+
+| Slot | Action | Typical use | Intrusiveness |
+|---|---|---|---|
+| Prompt overrides (`overrides/*.md`) | merge extra prompt fragments at declared points | tweak behavior details, add business context | lightest |
+| Mounts | declare knowledge dirs / third-party skill packs in a Profile | run plan discussions / execution with someone else's methodology | light |
+| Phase files | insert or replace stages in the execution sequence | add your own plan-discussion / acceptance flow | medium |
+| Direction files | add `directions/<name>.yaml` to open a new proposal direction | new proposer variants (security audit, test backfill …) | medium |
+| Delegate | hand dispatch/poll to your existing workflow | take over execution entirely; the engine only bookkeeps | heavy |
+
+Mounting third-party skill packs, one line per host: **dsh** — drop the pack under `~/.schflow/skills/` (the plugin already reads that root) or point `SCHFLOW_SKILLS_DIR` at it; **claude code** — install via its official plugin system (sessions see it naturally), and declare injection into tasks with a Profile `mounts` entry; **ZCode** — same, via `mounts`.
+
+Trimming for strong models: the built-in executor/orchestrator disciplines (visual self-check, the four structure questions, …) are all conditional prompt-layer content — if they feel heavy, cut them back via `promptOverrides` (the first slot); the engine-enforced surface is only the safety floor (deliverable contract, fail-closed, red lines) — that part cannot be trimmed.
+
 ## Host support
 
 | Host | Install | Executor families | Notes |

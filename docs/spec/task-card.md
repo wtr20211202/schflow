@@ -48,3 +48,5 @@ rejected → approved                            # 人工 reopen
 ```
 
 设计注：done→blocked 仅为合并队列 ejected 保留（复验失败/出口扫描命中回炉）；done 的常规去向是归档（月分卷），归档不改 status。
+
+人工裁决面=decide 程序（blocked/stale/rejected 三态的人侧出口）：`decide --task <id> --to approved（回炉）| rejected（关闭）| stale（收官） [--note <一句话裁决理由>]`，actor=human 落 status.changed 事件（note 随事件留痕）；approved 后派发仍走 dispatch 评估器全链守卫。
