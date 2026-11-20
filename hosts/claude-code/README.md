@@ -10,7 +10,7 @@ claude code 接入包——**官方插件形态**（`.claude-plugin/plugin.json`
 /plugin install schflow@schflow
 ```
 
-开发期本地路径同款可用（`claude plugin marketplace add <本地仓库路径>`，已真机验证：details 显示 7 skills + 1 agent + 3 commands）；GitHub 定址安装见上。skills 与仓库正典的逐字节一致性由 CI 守卫（`core/test/unit/claude-plugin-sync.test.mjs`）。
+开发期本地路径同款可用（`claude plugin marketplace add <本地仓库路径>`，已真机验证：details 显示 7 skills + 1 agent + 3 commands）；GitHub 定址安装见上。`skills/` 与 `core/` 镜像由 `bash scripts/sync-plugins.sh` 生成，与仓库正典的逐字节一致性由 CI 守卫（`core/test/unit/claude-plugin-sync.test.mjs`）。
 
 ## 包内容
 
@@ -18,6 +18,7 @@ claude code 接入包——**官方插件形态**（`.claude-plugin/plugin.json`
 |---|---|
 | `.claude-plugin/plugin.json` | 官方插件元数据 |
 | `skills/` | proposer / orchestrator / executor / improve（正典拷贝） |
+| `core/` | 引擎随包分发（`lib/` + `programs/` + 内置 `yaml` 副本）——装完即用，零 npm 依赖（`node "${CLAUDE_PLUGIN_ROOT}/core/programs/<动词>.mjs"`） |
 | `commands/` | `/propose`（human 特权立件）`/board`（只读看板）`/tick`（手动一轮 tick） |
 | `agents/schflow-executor.md` | 执行器子代理（官方 .md 形态）：per-agent 工具白名单承载挂载面强制——§5.1 对策 3 的 claude code 落点 |
 

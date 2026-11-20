@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// YAML 读写（yaml 包；写走原子写）
+// YAML 读写（内置 vendor 副本——引擎零 npm 依赖；写走原子写）
 import fs from 'node:fs';
-import YAML from 'yaml';
+import YAML from '../vendor/yaml/dist/index.js';
 import { atomicWriteFile } from './atomic.mjs';
 
 export function readYaml(file) {

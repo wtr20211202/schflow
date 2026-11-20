@@ -35,7 +35,7 @@ test('decide blocked→approved 回炉：真转移 + 事件 actor=human + note �
 
   const r = run('decide', ['--task', 'P-20261119-1', '--to', 'approved', '--note', '凭据已补齐，回炉重派', '--json'], { home });
   assert.equal(r.code, 0, `exit 0：${r.stdout || r.stderr}`);
-  assert.deepEqual(r.json, { ok: true, id: 'P-20261119-1', from: 'blocked', to: 'approved', note: '凭据已补齐，回炉重派' }, '--json 形态');
+  assert.deepEqual(r.json, { ok: true, id: 'P-20261119-1', from: 'blocked', to: 'approved', note: '凭据已补齐，回炉重派', home }, '--json 形态');
 
   // 卡面真转移
   const { findTaskDir, loadCard } = await import('../../lib/store.mjs');
@@ -91,7 +91,7 @@ test('decide 无 note：事件无 note 字段；缺参守卫=MISSING(2)+用法�
   // 无 note：--json 形态无 note 键，事件亦无 note 字段（blocked→stale 收官）
   const r = run('decide', ['--task', 'P-20261119-5', '--to', 'stale', '--json'], { home });
   assert.equal(r.code, 0, `exit 0：${r.stdout || r.stderr}`);
-  assert.deepEqual(r.json, { ok: true, id: 'P-20261119-5', from: 'blocked', to: 'stale' }, '--json 无 note 键');
+  assert.deepEqual(r.json, { ok: true, id: 'P-20261119-5', from: 'blocked', to: 'stale', home }, '--json 无 note 键');
   const { readEvents } = await import('../../lib/events.mjs');
   const evt = readEvents(home, { types: ['status.changed'] }).find((e) => e.from === 'blocked' && e.to === 'stale');
   assert.ok(evt, 'blocked→stale 事件在');

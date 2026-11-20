@@ -52,4 +52,4 @@ if (violations.length) {
     text: values.json ? '' : `validate-task: ${card.id} 违规 ${violations.length} 项——\n${violations.map((v) => `  - ${v}`).join('\n')}`,
   });
 }
-emit({ json: values.json ? { ok: true, id: card.id } : null, text: values.json ? '' : `validate-task: ${card.id} 通过` });
+emit({ json: values.json ? { ok: true, id: card.id, home } : null, text: values.json ? '' : `validate-task: ${card.id} 通过` });

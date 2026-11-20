@@ -36,18 +36,8 @@ import {
   git, gitOk, worktreeList, mergeWorktree, branchExists, isAncestor, removeWorktree, taskWorktree,
 } from '../lib/gitutil.mjs';
 import { resolveRebase } from '../lib/conflicto.mjs';
+import { secretScan } from '../lib/secret-scan.mjs'; // 出口扫描（§5.2 对策 7；allowlist 见模块头注）
 import { emit, die, EXIT } from '../lib/out.mjs';
-
-// 出口扫描特征集（§5.2 对策 7——gitleaks 类的内置最小集；接入外部扫描器留位 Profile）
-const SECRET_PATTERNS = [
-  /AKIA[0-9A-Z]{16}/,
-  /\bghp_[A-Za-z0-9]{36}\b/,
-  /\bgithub_pat_[A-Za-z0-9_]{20,}\b/,
-  /\bxox[baprs]-[A-Za-z0-9-]{10,}\b/,
-  /-----BEGIN (?:RSA |EC |OPENSSH |DSA |PGP )?PRIVATE KEY-----/,
-  /\bAIza[0-9A-Za-z_-]{35}\b/,
-  /\bsk-[A-Za-z0-9_-]{20,}\b/,
-];
 
 const { values } = parseArgs({ options: {
   home: { type: 'string' }, json: { type: 'boolean' }, 'no-push': { type: 'boolean' },
@@ -83,7 +73,7 @@ try {
 }
 
 emit({
-  json: values.json ? { ok: true, results } : null,
+  json: values.json ? { ok: true, results, home } : null,
   text: values.json ? '' : (results.length
     ? `merge: ${results.length} 项——\n${results.map((r) => `  - ${r.task ?? r.queue} ${r.outcome}${r.sha ? ` ${r.sha.slice(0, 10)}` : ''}${r.reason ? `（${r.reason}）` : ''}`).join('\n')}`
     : 'merge: 队列空'),
@@ -350,14 +340,6 @@ function deleteBranchAndWorktree(repo, id) {
     removeWorktree(repo, wt, { force: true });
   }
   git(repo, ['branch', '-d', `schflow/${id}`], { allowFail: true }); // -d 安全阀：未合入拒删
-}
-
-function secretScan(diffText) {
-  for (const re of SECRET_PATTERNS) {
-    const m = diffText.match(re);
-    if (m) return `${re.source.slice(0, 40)}… "${m[0].slice(0, 12)}…"`;
-  }
-  return null;
 }
 
 function hashOf(repo, base) {

@@ -47,7 +47,7 @@
 dsh plugin --profile schflow add "github:wtr20211202/schflow#path:hosts/dsh/plugin"
 ```
 
-前置：node ≥ 20 与 git。插件让你的智能体会话获得操作流水线的技能（`schflow-proposer` / `schflow-orchestrator` / `schflow-executor` / `schflow-improve` / `schflow-audit`）；确定性程序在本仓库（`core/programs/*.mjs`），纯 node 直跑。
+前置：node ≥ 20 与 git。插件**自足**：技能（`schflow-proposer` / `schflow-orchestrator` / `schflow-executor` / `schflow-improve` / `schflow-audit`）+ 引擎（`core/programs/*.mjs` 与 `core/lib/`）+ 内置 `yaml` 副本随包分发——零 npm 依赖，`node <插件根>/core/programs/<动词>.mjs` 装完即用，无需 `npm install`。想用 dev clone 的引擎时设 `SCHFLOW_PKG` 指向 clone 根。
 
 ## 快速上手
 

@@ -44,8 +44,8 @@ test('next-id --peek：只读预告，不消耗计数', () => {
   assert.equal(run('next-id', [], { home, expectFail: true }).code, 75);
   assert.equal(run('next-id', ['--peek'], { home }).stdout.trim(), `P-${today}-2`, '写锁被持有时 peek 仍可用');
 
-  // --json 输出形态与取号一致
-  assert.deepEqual(run('next-id', ['--peek', '--json'], { home }).json, { id: `P-${today}-2`, date: today, seq: 2 });
+  // --json 输出形态与取号一致（含 home 身份字段）
+  assert.deepEqual(run('next-id', ['--peek', '--json'], { home }).json, { id: `P-${today}-2`, date: today, seq: 2, home });
 
   // 坏计数文件：peek 如实报错（非 0），原样保留不修正
   fs.writeFileSync(counterFile, '{broken json');

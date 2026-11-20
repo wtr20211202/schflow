@@ -76,7 +76,7 @@ if (values.list) {
   }
   try {
     const full = appendEvent(home, evt, { allowUnknownType: !!values['allow-unknown-type'] });
-    emit({ json: values.json ? full : null, text: values.json ? '' : `seq=${full.seq} ${full.type}` });
+    emit({ json: values.json ? { ...full, home } : null, text: values.json ? '' : `seq=${full.seq} ${full.type}` });
   } catch (e) {
     if (e.code === 'LOCK_BUSY') die(EXIT.BUSY, { text: e.message });
     die(EXIT.REJECT, { text: `event: ${e.message}` });

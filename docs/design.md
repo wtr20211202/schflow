@@ -214,6 +214,8 @@ tick 本身零模型成本，只有真判断工作才发起有界的 agent 调�
 
 ### 极简定案：3+2 skills + 通用层（v0.9——精简到不能再减的形态）
 
+**正典技能最小约束护栏（v1.0.33 定档）**：正典 skill 的无条件面仅「产物契约+红线」（安全底线）；一切情景类纪律（视觉自查/结构四问等）必须条件式触发，且**新吸收的情景类纪律优先以 override 示例形态进用户层文档/示例，不继续长正典**——防逐轮吸收膨胀（强模型用户本就不该被默认约束，弱模型用户按 Extending 节自取，两侧都由 promptOverrides 分层裁决）。
+
 **插件层（LLM 面）= 3 核心 + 2 变体，全部是 markdown 提示词文件**：
 
 | skill | 职责 | 备注 |
@@ -820,7 +822,7 @@ dsh 无文档化 resume——现流水线**早已解决**此问题：状态全�
 
 ```
 schflow/                      # 工作名（P0 查重后转正）
-├── bin/schflow.ts            # 唯一入口（commander 装配）
+├── bin/schflow.mjs           # 唯一入口（commander 装配）
 ├── src/
 │   ├── model/                # 领域类型：Task/Kind/Status/Profile/Slot/Run/Event + 状态机转移表
 │   ├── store/                # HOME 布局/任务卡读写/索引重建/归档
@@ -882,7 +884,7 @@ schflow/                          # 开源仓库 = 三条产品线
 ├── skills/                       # ① 插件层：proposer/orchestrator/executor（SKILL.md）
 │   ├── directions/               #    提案方向数据文件（industry/polish/human）
 │   └── phases/                   #    阶段模板（可插拔）
-├── core/                         # ② 通用层：bin/schflow.ts + src/十模块（v0 八程序→v1 引擎）
+├── core/                         # ② 通用层：bin/schflow.mjs + src/十模块（v0 八程序→v1 引擎）
 ├── hosts/                        # ③ 宿主接入包：claude-code（plugin.json+子代理+commands）/ dsh（原生 bundle 插件 + WSL 启动桥 + cron 模板）/ zcode（cron 模板+skill）
 ├── golden/ · docs/adr/ · .github/workflows/
 ```

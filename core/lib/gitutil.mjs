@@ -14,13 +14,25 @@
 
 // git 工具面：子进程调用（args 数组、零 shell 拼接——跨平台红线）+ worktree 约定。
 // worktree 布局正典：<repo 父目录>/.schflow-worktrees/<repo 名>/<id>；合并工作树 .../merge-<base>。
+//
+// 缓冲上限：git 工具面统一 maxBuffer=64MB（GIT_MAX_BUFFER，可经 options 覆盖）。
+// merge ④ 出口扫描取 `git diff <mergeTip>^1 <mergeTip>` 的完整增量文本做 secret 扫描——安全
+// 咽喉必须看全量，大变更集（数百文件/数万行）轻松超 Node 默认 1MB，旧实现会 ENOBUFS 掀翻
+// 整个合并队列。超限错误单独给可读信息（明确「输出超过缓冲上限」），不得误报成 PATH 问题。
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
-export function git(repoDir, args, { allowFail = false } = {}) {
-  const r = spawnSync('git', ['-C', repoDir, ...args], { encoding: 'utf8', windowsHide: true });
-  if (r.error) throw new Error(`git 调用失败（${r.error.message}）——git 是否在 PATH？`);
+export const GIT_MAX_BUFFER = 64 * 1024 * 1024;
+
+export function git(repoDir, args, { allowFail = false, maxBuffer = GIT_MAX_BUFFER } = {}) {
+  const r = spawnSync('git', ['-C', repoDir, ...args], { encoding: 'utf8', windowsHide: true, maxBuffer });
+  if (r.error) {
+    if (r.error.code === 'ENOBUFS') {
+      throw new Error(`git -C ${repoDir} ${args.join(' ')} 输出超过缓冲上限（maxBuffer=${maxBuffer} 字节，ENOBUFS）——大变更集请调大 options.maxBuffer`);
+    }
+    throw new Error(`git 调用失败（${r.error.message}）——git 是否在 PATH？`);
+  }
   if (r.status !== 0 && !allowFail) {
     throw new Error(`git -C ${repoDir} ${args.join(' ')} 失败（${r.status}）：${(r.stderr || '').trim()}`);
   }

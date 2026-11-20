@@ -108,6 +108,7 @@ try {
           : { id: card.id, wouldDispatch: true, reason: null };
       }),
       at: new Date().toISOString(),
+      home,
     };
   } else for (const card of candidates) {
     if (dispatched.length && !values.auto && values.task) break; // 显式单发
@@ -227,7 +228,7 @@ if (planMode) {
   process.exit(EXIT.OK);
 }
 
-const report = { dispatched, deferred, at: new Date().toISOString() };
+const report = { dispatched, deferred, at: new Date().toISOString(), home };
 emit({
   json: values.json ? report : null,
   text: values.json ? '' : formatReport(report),
@@ -247,6 +248,20 @@ function readPool(home) {
 
 function entryScope(e) { return e.scope ?? '(global)'; }
 
+/** 依赖状态解析（严格只读）：open 面（byId）→ 归档面（done/<月>，findTaskDir 已覆盖）→ unknown。
+ *  归档回退只做 findTaskDir/loadCard，不写卡、不动 byId 的其它用途（sweep/--retry/--task 候选）。 */
+function depStatus(home, byId, id) {
+  const open = byId.get(id);
+  if (open) return open.status ?? 'unknown';
+  const dir = findTaskDir(home, id);
+  if (!dir) return 'unknown';
+  try {
+    return loadCard(dir).status ?? 'unknown';
+  } catch {
+    return 'unknown'; // 损坏卡=状态不可判定（真未知，不阻断其它候选）
+  }
+}
+
 /** 候选前置评估——--plan 预演与真实派发共用同一份（同源同序同原因，防双实现漂移）。
  *  全程只读：不建 worktree/不取租约/不翻转状态/不落事件。评估序 = 真实派发的暂缓原因序：
  *  status → deps → slots → repo/base（只读解析）→ env 匹配+可得性预判。
@@ -256,9 +271,11 @@ function evaluateCandidate(card, { home, byId, pool, concurrencyHint }) {
 
   if (card.status !== 'approved') return no(card.status === 'running' ? 'already-running' : `status-${card.status}`);
 
-  // 依赖：目标已终结（done/stale/rejected）即解除
+  // 依赖：目标已终结（done/stale/rejected）即解除。
+  // 解析口径：open 面（byId）→ 未命中回退归档面（done/<月>，findTaskDir 覆盖）→ 仍无=unknown。
+  // 终态任务 fold 即归档，只查 open 会把「已完成依赖」永久判 unknown（语义反了）；回退严格只读。
   const deps = card.dependsOn ?? [];
-  const depStates = deps.map((d) => byId.get(d)?.status ?? 'unknown');
+  const depStates = deps.map((d) => depStatus(home, byId, d));
   if (depStates.some((s) => s === 'unknown')) return no('deps-unknown');
   if (!depStates.every((s) => ['done', 'stale', 'rejected'].includes(s))) return no('deps-pending', depStates.join(','));
 

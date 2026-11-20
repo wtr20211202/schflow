@@ -6,6 +6,7 @@
 // P23b --all 归档源可见 + 幂等锚覆盖归档（源归档后重跑不重发）；P23c 无块不转生（fail-soft）。
 // P24 dispatch --retry：env-retry 原子重派闭环 + 拒绝面；
 // P25 dispatch --plan：只读候选预演（judge①/⑥ 派发前裁决的候选面——零状态变更零事件）。
+// P26 dispatch --plan 依赖判定归档面回退：已归档 done 依赖=可派 / open pending=deps-pending / 不存在=deps-unknown。
 import test from 'node:test';
 import assert from 'node:assert';
 import fs from 'node:fs';
@@ -215,4 +216,48 @@ test('P25 dispatch --plan：只读预演（可派+依赖未解除+租约无匹�
   const rej = run('dispatch', ['--plan', '--retry', 'P-20261117-1'], { home, expectFail: true });
   assert.equal(rej.code, 2);
   assert.match(rej.stderr, /互斥/);
+});
+
+test('P26 dispatch --plan 依赖判定归档面回退：归档 done=可派 / open pending=deps-pending / 不存在=deps-unknown / 回退纯读零变更', async () => {
+  const home = tmpdir('schflow-g6f-');
+  fs.mkdirSync(home, { recursive: true });
+  const { resolveHome } = await import('../../lib/home.mjs');
+  const { findTaskDir, loadCard, transition, archiveTask, isArchived } = await import('../../lib/store.mjs');
+  resolveHome(home);
+
+  // 依赖本体：done → 归档（与 fold done 即归档同构）——open 面查不到，只能走归档回退
+  await addTask(home, { id: 'P-20261119-1', kind: 'docs', title: '已归档完成依赖' });
+  transition(home, 'P-20261119-1', 'approved', { actor: 'human' });
+  transition(home, 'P-20261119-1', 'running', { actor: 'engine' });
+  transition(home, 'P-20261119-1', 'done', { actor: 'engine' });
+  archiveTask(home, 'P-20261119-1');
+  assert.ok(isArchived(home, 'P-20261119-1'), '依赖本体已进 done/<YYYY-MM>/ 归档区（open 面不可见）');
+
+  await addTask(home, { id: 'P-20261119-2', kind: 'docs', title: 'open 面未终结依赖', status: 'pending' });
+  await addTask(home, { id: 'P-20261119-3', kind: 'docs', title: '依赖已归档任务', status: 'approved', dependsOn: ['P-20261119-1'] });
+  await addTask(home, { id: 'P-20261119-4', kind: 'docs', title: '依赖 open 未终结任务', status: 'approved', dependsOn: ['P-20261119-2'] });
+  await addTask(home, { id: 'P-20261119-5', kind: 'docs', title: '依赖不存在任务', status: 'approved', dependsOn: ['P-20990101-9'] });
+
+  // 三面（+归档卡）+ 租约面前快照：任务卡（全文，含归档卡）/ pool / 事件流 / leases
+  const ids = ['P-20261119-1', 'P-20261119-2', 'P-20261119-3', 'P-20261119-4', 'P-20261119-5'];
+  const snapshot = () => JSON.stringify({
+    cards: ids.map((id) => loadCard(findTaskDir(home, id))),
+    pool: fs.existsSync(path.join(home, 'state', 'pool.json')) ? fs.readFileSync(path.join(home, 'state', 'pool.json'), 'utf8') : null,
+    leases: fs.existsSync(path.join(home, 'state', 'leases.json')) ? fs.readFileSync(path.join(home, 'state', 'leases.json'), 'utf8') : null,
+    events: fs.readdirSync(home).filter((f) => /^events-.*\.jsonl$/.test(f)).flatMap((f) => fs.readFileSync(path.join(home, f), 'utf8').split('\n').filter(Boolean)),
+  });
+  const before = snapshot();
+
+  const r = run('dispatch', ['--plan', '--json'], { home });
+  assert.equal(r.code, 0, `预演恒 0：${r.stdout}${r.stderr}`);
+  const byPlan = new Map(r.json.plan.map((e) => [e.id, e]));
+  // 归档 done 依赖=已解除（修复前只查 open 面 → 误报 deps-unknown，依赖永远无法解除）
+  assert.deepEqual(byPlan.get('P-20261119-3'), { id: 'P-20261119-3', wouldDispatch: true, reason: null }, '依赖已归档 done=可派');
+  // open 面 pending 维持既有语义（不得为通过测试而放宽）
+  assert.deepEqual(byPlan.get('P-20261119-4'), { id: 'P-20261119-4', wouldDispatch: false, reason: 'deps-pending', detail: 'pending' }, 'open 面 pending=deps-pending');
+  // 两面对不上=真未知
+  assert.deepEqual(byPlan.get('P-20261119-5'), { id: 'P-20261119-5', wouldDispatch: false, reason: 'deps-unknown' }, '依赖 id 不存在=deps-unknown');
+
+  // 归档回退为纯读：plan 前后任务卡（含归档卡）/事件流/pool/租约一字节不变
+  assert.equal(snapshot(), before, 'P26：plan 前后任务卡/事件流/pool/租约不变（归档回退零写入）');
 });

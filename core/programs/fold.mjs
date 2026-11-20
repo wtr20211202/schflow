@@ -166,7 +166,7 @@ try {
 }
 
 emit({
-  json: values.json ? { ok: true, outcomes } : null,
+  json: values.json ? { ok: true, outcomes, home } : null,
   text: values.json ? '' : (outcomes.length
     ? `fold: ${outcomes.length} 项——\n${outcomes.map((o) => `  - ${o.id} ${o.outcome}${o.reason ? `（${o.reason}）` : ''}`).join('\n')}`
     : 'fold: 无在途可折叠'),

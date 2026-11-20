@@ -32,9 +32,9 @@ dsh --profile schflow "列出你的技能"
 
 ## 包内容与同步纪律
 
-- `skills/` 是仓库正典 `skills/` 的逐字节拷贝（发布产物）；改正典后跑
-  `rsync -a skills/{proposer,orchestrator,executor,improve} hosts/dsh/plugin/skills/`；
-- 漂移由 CI 单测 `core/test/unit/dsh-plugin-sync.test.mjs` 拦截（逐字节比对）。
+- `skills/` 与 `core/`（`lib/` + `programs/` + 内置 `yaml` 副本）都是仓库正典的逐字节拷贝（发布产物，装完即用、零 npm 依赖）；改正典后跑
+  `bash scripts/sync-plugins.sh` 一次性刷新两个宿主镜像；
+- 漂移由 CI 单测 `core/test/unit/dsh-plugin-sync.test.mjs` 拦截（递归双向逐字节比对）。
 
 ## 边界
 

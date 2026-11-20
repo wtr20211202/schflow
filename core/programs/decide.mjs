@@ -61,7 +61,7 @@ try {
 
 emit({
   json: values.json
-    ? { ok: true, id: values.task, from: result.from, to: result.to, ...(values.note ? { note: values.note } : {}) }
+    ? { ok: true, id: values.task, from: result.from, to: result.to, ...(values.note ? { note: values.note } : {}), home }
     : null,
   text: values.json ? '' : `decide: ${values.task} ${result.from} → ${result.to}${values.note ? `（${values.note}）` : ''}`,
 });

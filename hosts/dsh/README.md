@@ -73,7 +73,7 @@ dsh plugin --profile schflow add "github:wtr20211202/schflow#path:hosts/dsh/plug
 dsh plugin --profile schflow add file:/path/to/schflow/hosts/dsh/plugin
 ```
 
-skills 内嵌拷贝与仓库正典逐字节一致，CI 守卫（`core/test/unit/dsh-plugin-sync.test.mjs`）。
+skills 与 core（引擎 + 内置 yaml，装完即用、零 npm 依赖）内嵌拷贝与仓库正典逐字节一致，CI 守卫（`core/test/unit/dsh-plugin-sync.test.mjs`）。
 
 ## GUI（web 控制台）驱动注记（主流使用面）
 

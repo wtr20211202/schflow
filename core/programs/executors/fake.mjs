@@ -27,6 +27,10 @@ const worktree = process.env.SCHFLOW_WORKTREE || '';
 const id = process.env.SCHFLOW_TASK_ID || 'P-UNKNOWN';
 const mode = process.env.SCHFLOW_FAKE_MODE || 'done';
 const delay = Number(process.env.SCHFLOW_FAKE_DELAY_MS || '0');
+// secret 模式夹具（P10「泄漏必拦」用）：合成形态、非公开文档示例值，运行时拼装——
+// 源码中不得出现连续 AKIA 形态字面量，否则本文件的增量 diff 会被自身出口扫描拦下
+// （P-20261120-6 合并期自指误报）。运行时值与 run1 完全一致。
+const FAKE_AWS_KEY = ['AKIA', 'Z7Q3XK9MNBVC2PLR'].join('');
 const git = (args, opts = {}) => spawnSync('git', args, { encoding: 'utf8', windowsHide: true, ...opts });
 
 if (delay) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, delay);
@@ -59,7 +63,9 @@ if (worktree) {
   }
   const file = mode === 'secret' ? 'creds.txt' : path.join('fake', `${id}.md`);
   const content = mode === 'secret'
-    ? 'aws_key = AKIAIOSFODNN7EXAMPLE\n'
+    // 合成形态（非公开文档示例值）：出口扫描 allowlist 只放行 AWS 文档示例，
+    // 这里必须用未放行的值——否则 P10「泄漏必拦」路径被 allowlist 遮蔽而失去意义。
+    ? `aws_key = ${FAKE_AWS_KEY}\n`
     : `# fake deliverable for ${id}\n\n由假执行器生成的演示产物。\n`;
   fs.mkdirSync(path.dirname(path.join(worktree, file)), { recursive: true });
   fs.writeFileSync(path.join(worktree, file), content);

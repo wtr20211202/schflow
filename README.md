@@ -47,7 +47,7 @@ Both hosts install via their **official plugin mechanism** — no manual copying
 dsh plugin --profile schflow add "github:wtr20211202/schflow#path:hosts/dsh/plugin"
 ```
 
-Requires: node ≥ 20 and git. The plugin gives your agent sessions the skills (`schflow-proposer` / `schflow-orchestrator` / `schflow-executor` / `schflow-improve` / `schflow-audit`) that operate the pipeline; the deterministic programs live in this repo (`core/programs/*.mjs`) and run with plain node.
+Requires: node ≥ 20 and git. The plugin is **self-contained**: it ships the skills (`schflow-proposer` / `schflow-orchestrator` / `schflow-executor` / `schflow-improve` / `schflow-audit`), the engine (`core/programs/*.mjs` + `core/lib/`) and a vendored copy of `yaml` — zero npm dependencies, so `node <plugin-root>/core/programs/<verb>.mjs` runs as-is with no `npm install`. To use the engine from a dev clone instead, point `SCHFLOW_PKG` at the clone root.
 
 ## Quick start
 

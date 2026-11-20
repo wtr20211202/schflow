@@ -20,7 +20,7 @@ version: 0.1.2
 | 5 | 合并队列 | `merge` 程序（守卫/rebase/复验/出口扫描/快进推送全在程序里；**你不手工 git merge——推送主体唯一**） | ejected/挂起项必须报告 |
 | 6 | 收尾 | 汇总本轮一句话（派发/折叠/合并/**harvest spawned 清单**）+ 各步骤异常项；Profile `on-tick-end` 钩子（若有）提示用户自行执行 | 尽力而为 |
 
-程序调用面：`node <pkg>/core/programs/<动词>.mjs`（`--home` 缺省 `$SCHFLOW_HOME`；`--json` 拿机读输出）。动词表与退出码见 docs/spec/programs.md（0 成功 / 1 业务失败 / 2 前提缺失 / 75 忙等 / 76 拒绝）。
+程序调用面：`node <pkg>/core/programs/<动词>.mjs`（`--home` 缺省 `$SCHFLOW_HOME`；`--json` 拿机读输出）。`<pkg>` 解析顺序：`$SCHFLOW_PKG` → 本 SKILL.md 上溯两级（`skills/<名>/SKILL.md` → 包根；插件安装形态即插件根，引擎随包分发）→ 都不可得则问用户，不猜。动词表与退出码见 docs/spec/programs.md（0 成功 / 1 业务失败 / 2 前提缺失 / 75 忙等 / 76 拒绝）。
 
 ## 判断点（序列之内，你出结论；结构化问答，fail-closed）
 

@@ -161,7 +161,7 @@ try {
 }
 
 emit({
-  json: values.json ? { ok: true, results } : null,
+  json: values.json ? { ok: true, results, home } : null,
   text: values.json ? '' : formatReport(results),
 });
 

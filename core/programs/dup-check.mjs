@@ -53,7 +53,7 @@ for (const card of cards) {
 }
 hits.sort((a, b) => b.score - a.score);
 emit({
-  json: values.json ? { ok: true, hits, threshold } : null,
+  json: values.json ? { ok: true, hits, threshold, home } : null,
   text: values.json ? '' : (hits.length
     ? `dup-check: ${hits.length} 命中（阈值 ${threshold}）——\n${hits.map((h) => `  - ${h.id} score=${h.score} 锚=[${h.matchedAnchors.join(',')}] ${h.title}`).join('\n')}`
     : `dup-check: 无命中（阈值 ${threshold}）`),

@@ -1,0 +1,11 @@
+# direction: human —— 「真实使用」特权档（仅人可用，generator 载入即拒用）
+name: human
+mode: propose
+trust: trusted
+exclusive-human: true   # 机制防线：validate-task 程序机械拒绝（direction 含此键且调用源非 human）
+focus: 用户在实际使用中发现的真实问题/需求
+privileges:
+  priority: highest     # 添加即 approved，跳过 pending
+quota:
+  per-round: null       # 不适用（人工随时立件）
+prompt-overrides: []

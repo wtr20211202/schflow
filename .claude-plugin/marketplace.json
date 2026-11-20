@@ -8,7 +8,7 @@
       "name": "schflow",
       "source": "./hosts/claude-code",
       "description": "Proposal-driven task pipeline — skills + /propose /board /tick commands + executor subagent",
-      "version": "0.1.0"
+      "version": "0.1.12"
     }
   ],
   "description": "schflow plugins — proposal-driven task pipeline for AI coding agents"

@@ -45,7 +45,7 @@ if (values.peek) {
   const today = ymd();
   const seq = counter.date === today ? counter.last + 1 : 1;
   const id = `P-${today}-${seq}`;
-  emit({ json: values.json ? { id, date: today, seq } : null, text: values.json ? '' : id });
+  emit({ json: values.json ? { id, date: today, seq, home } : null, text: values.json ? '' : id });
 } else {
   const lock = acquireLock(p.writeLock);
   if (!lock) die(EXIT.BUSY, { text: 'next-id: HOME 写锁忙（另一程序在写）——稍后重试' });
@@ -56,7 +56,7 @@ if (values.peek) {
     counter.last += 1;
     atomicWriteJson(p.idCounter, counter);
     const id = `P-${today}-${counter.last}`;
-    emit({ json: values.json ? { id, date: today, seq: counter.last } : null, text: values.json ? '' : id });
+    emit({ json: values.json ? { id, date: today, seq: counter.last, home } : null, text: values.json ? '' : id });
   } finally {
     lock.release();
   }

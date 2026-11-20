@@ -19,6 +19,10 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
+// 测试库一律临时新建：默认静默 resolveHome 的「新建空库」提示（断言该提示的用例显式传 SCHFLOW_QUIET: ''）。
+// 模块加载即设——run() 派生程序经 process.env 继承。
+process.env.SCHFLOW_QUIET = '1';
+
 export const PKG_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 export const PROG = (name) => path.join(PKG_ROOT, 'core', 'programs', `${name}.mjs`);
 
@@ -101,6 +105,35 @@ export function writeEnvs(home, yaml) {
 
 export function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
+}
+
+/** 相对文件清单（posix 分隔符、排序；只列文件，空目录不参与——镜像守卫按内容判定）。 */
+export function listFilesRel(root) {
+  const out = [];
+  (function walk(dir, rel) {
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      const r = rel ? `${rel}/${e.name}` : e.name;
+      if (e.isDirectory()) walk(path.join(dir, e.name), r);
+      else out.push(r);
+    }
+  })(root, '');
+  return out.sort();
+}
+
+/** 镜像差异清单（插件同步守卫共用）：文件集双向相等 + 逐字节一致；空数组=完全一致。 */
+export function mirrorDiff(canonRoot, mirrorRoot) {
+  const canon = new Set(listFilesRel(canonRoot));
+  const mirror = new Set(listFilesRel(mirrorRoot));
+  const problems = [];
+  for (const f of canon) if (!mirror.has(f)) problems.push(`缺少 ${f}`);
+  for (const f of mirror) if (!canon.has(f)) problems.push(`多余 ${f}`);
+  for (const f of canon) {
+    if (!mirror.has(f)) continue;
+    if (!fs.readFileSync(path.join(canonRoot, f)).equals(fs.readFileSync(path.join(mirrorRoot, f)))) {
+      problems.push(`内容漂移 ${f}`);
+    }
+  }
+  return problems;
 }
 
 /** 轮询 fold 至收敛（全部在途折完）或超时。

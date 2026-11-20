@@ -1,5 +1,9 @@
 node_modules/
 dist/
+# 内置第三方副本是入库源码（不是构建产物）：vendor/yaml/dist 必须随插件分发
+!core/vendor/yaml/dist/
+!hosts/claude-code/core/vendor/yaml/dist/
+!hosts/dsh/plugin/core/vendor/yaml/dist/
 *.log
 .DS_Store
 Thumbs.db

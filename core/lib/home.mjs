@@ -17,10 +17,16 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-/** 解析 HOME（--home > 环境变量 > ~/.schflow），并幂等自举目录骨架。返回绝对路径。 */
+/** 解析 HOME（--home > 环境变量 > ~/.schflow），并幂等自举目录骨架。返回绝对路径。
+ *  目录此前不存在=首次使用：向 stderr 打一行「新建空库」提示（身份可见——库位置可自证）；
+ *  SCHFLOW_QUIET=1 静默（测试用；提示只在真正新建时出现一次）。 */
 export function resolveHome(explicit) {
   const home = path.resolve(explicit || process.env.SCHFLOW_HOME || path.join(os.homedir(), '.schflow'));
+  const fresh = !fs.existsSync(home);
   bootstrap(home);
+  if (fresh && process.env.SCHFLOW_QUIET !== '1') {
+    process.stderr.write(`schflow: 新建空库 ${home}（首次使用；--home / SCHFLOW_HOME 可指定其他库）\n`);
+  }
   return home;
 }
 

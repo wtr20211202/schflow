@@ -20,7 +20,7 @@ node core/programs/dispatch.mjs --auto --json
 | `status` | 校验全部任务卡+重建索引 | **fail-closed**：违规 exit 76 且不重建索引 |
 | `dup-check` | 标题 jaccard + 实锚双通道查重 | 告警非拒绝（恒 0）；阈值 0.20 可调 |
 | `validate-task` | 格式门禁（task-card spec 全规则） | highest/exclusive-human 机械拒绝 |
-| `dispatch` | 补位派发 | 见下 |
+| `dispatch` | 补位派发 | 见下（依赖判定口径：open 面 → 归档面回退 → unknown） |
 | `fold` | 折叠在途 | 活性=落盘面证据（result.json / pid） |
 | `merge` | per-(repo,base) 合并队列 | 见下 |
 | `event` | 事件追加（信封自动补） | 封闭枚举；`--allow-unknown-type` 逃生口；`--list` 只读回放查询（`--type/--task/--last`，不取锁） |
@@ -41,6 +41,7 @@ node core/programs/dispatch.mjs --auto --json
 序列：per-branch lock → 合并工作树净守卫 → 零交集判定（rebase 前算原始 fork）→ rebase（冲突三级自动恢复链：L0 机械重试 / L1 严格 union / L2 judge② `--judge-resolve`；判据与护栏见 core/lib/conflicto.mjs 头注）→ 复验（零交集跳过，`when` 谓词——L1/L2 的语义兜底）→ `--no-ff` 合并 → 出口扫描（secret 特征集）→ base 推进（主 checkout 持有=主树干净守卫+ff-only，否则 update-ref 旧值校验）→ push（快进-only，非快进=树等价消解或挂起）→ 删支（`-d` 安全阀）→ 归档。
 
 - **ejected 族**：复验失败 / rebase 冲突（恢复链 L0~L2 穷尽后仍败）→ 该支标受阻回炉（blocked→approved→重派），队列继续下一支（不队头阻塞）；
+- **出口扫描 allowlist**：`core/lib/secret-scan.mjs` 仅放行**精确匹配**的公开文档示例值（如 AWS 文档的 `AKIAIOSFODNN7EXAMPLE` / `AKIAI44QH8DHBEXAMPLE`），逐匹配遍历、示例值跳过后继续检同一模式的下一个匹配；新增条目须附出处，**不得放宽模式本身**（禁「AKIA 开头都放行」类前缀规则），也不得跳过扫描或截断扫描面；
 - **挂起人工（停队列）**：secret-scan 命中 / 分支失踪 / 未知 verify 谓词 / 主树脏 / 推送非快进且非树等价 / merge 冲突 / 合并工作树脏；
 - 幂等恢复：已合入分支（is-ancestor）→ 补 merge.done+归档；merge.done 事件已落但未归档 → 补归档。
 
@@ -70,6 +71,8 @@ $SCHFLOW_HOME/                    # 默认 ~/.schflow；SCHFLOW_HOME 覆盖；�
   logs/  knowledge/               # 引擎日志 / 用户知识挂载位
 ```
 
+**身份自证**：所有程序 `--json` 主输出含 `home`（写入/读取的库绝对路径；`event --list` 恒为事件数组，形态不变），`status` 另含 `version`（`--version` 只打印版本号，不解析 HOME）；HOME 目录此前不存在时向 stderr 打一行 `schflow: 新建空库 <绝对路径>（首次使用；--home / SCHFLOW_HOME 可指定其他库）`——`SCHFLOW_QUIET=1` 静默（测试用）。
+
 **worktree 布局**（仓库外侧，同盘）：`<repo 父>/.schflow-worktrees/<repo 名>/<ID>`（执行工作树）与 `.../merge-<base>`（合并工作树，detached——与任何 checkout 零互斥）。工作分支 `schflow/<ID>`。
 
 **并发纪律**：HOME 写锁=短临界区（一切状态写，程序内置）；tick 锁=per-project（orchestrator 侧）；merge 锁=per-(repo,base)。状态写全部 tmp+rename 原子写。
@@ -94,5 +97,6 @@ result.json 必须 tmp+rename 原子写（fold 并发读）；git 提交带 `(<i
 3. **任务书恒走 stdin**（claude `-p` / dsh `-`）——避开 argv 长度上限与转义，天然跨平台。
 
 - **子进程存亡**：executor 一律 `detached: true`——Windows 上脱离派发者 Job（`spawnSync` 场景 job 关闭连坐全部后代，实测复现）；POSIX 上新会话防 SIGHUP；spawn 异步错误写 transcript.err（ENOENT 等不让 unhandled error 掀翻派发器）；
+- **git 子进程缓冲**：`gitutil.git()` 统一 `maxBuffer` 64MB（`GIT_MAX_BUFFER`，可经 options 覆盖），`conflicto.mjs` 的 `merge-file --diff3 -p` / `rebase --continue` 两处直接 spawnSync 同上限——merge ④ 出口扫描取完整 diff 文本做 secret 扫描（安全咽喉必须看全量，不得按段截断）；超限抛可读 ENOBUFS 错误（明示「输出超过缓冲上限」），不得误报为 PATH 问题；
 - **shell 引号**：verify/envs 钩子命令经 `shell:true` 执行——Windows cmd.exe 对引号的二次包装会形变，**跨平台命令免引号或用脚本文件**；
 - `pidAlive`：kill(pid,0) 的 EPERM/EACCES 均按存活处理（权限误报防假死）。

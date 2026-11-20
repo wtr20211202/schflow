@@ -25,7 +25,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { git } from './gitutil.mjs';
+import { git, GIT_MAX_BUFFER } from './gitutil.mjs';
 import { appendEvent } from './events.mjs';
 import { findTaskDir } from './store.mjs';
 
@@ -111,7 +111,8 @@ function planSemanticUnion(mw, files) {
       fs.writeFileSync(fb, base);
       fs.writeFileSync(ft, theirs);
       // 注意参数序：merge-file <ours> <base> <theirs>；--diff3 带 base 段；-p 结果走 stdout
-      const mf = spawnSync('git', ['merge-file', '--diff3', '-p', fo, fb, ft], { encoding: 'utf8', windowsHide: true });
+      // 输出=整个合并后文件全文：与 gitutil.git() 同 64MB 上限（大文件不得因默认 1MB 缓冲误判失败）
+      const mf = spawnSync('git', ['merge-file', '--diff3', '-p', fo, fb, ft], { encoding: 'utf8', windowsHide: true, maxBuffer: GIT_MAX_BUFFER });
       if (mf.error || mf.status === null || mf.status < 0) return { ok: false, reason: 'merge-file-error' };
       const merged = resolveConflictBlocks(String(mf.stdout));
       if (!merged.safe) return { ok: false, reason: 'unsafe-block' };
@@ -194,7 +195,7 @@ function applyResults(mw, results) {
 /** rebase --continue（GIT_EDITOR=true 注入防交互；复验链在其后仍兜底语义正确性） */
 function continueRebase(mw) {
   const r = spawnSync('git', ['-C', mw, 'rebase', '--continue'], {
-    encoding: 'utf8', windowsHide: true, env: { ...process.env, GIT_EDITOR: 'true' },
+    encoding: 'utf8', windowsHide: true, env: { ...process.env, GIT_EDITOR: 'true' }, maxBuffer: GIT_MAX_BUFFER,
   });
   return { ok: !r.error && r.status === 0, stderr: r.stderr || '' };
 }
