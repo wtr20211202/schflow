@@ -19,7 +19,7 @@ import test from 'node:test';
 import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
-import { git, GIT_MAX_BUFFER } from '../../lib/gitutil.mjs';
+import { git, GIT_MAX_BUFFER, ensureWorktree, worktreeList } from '../../lib/gitutil.mjs';
 import { mkToyRepo, tmpdir } from '../helpers.mjs';
 
 test('缓冲上限常量：GIT_MAX_BUFFER = 64MB', () => {
@@ -54,4 +54,47 @@ test('ENOBUFS 分支：小 maxBuffer 抛可读错误（明示缓冲上限，不�
   assert.match(err.message, /输出超过缓冲上限/);
   assert.match(err.message, /ENOBUFS/);
   assert.ok(!err.message.includes('git 是否在 PATH'), '不得误报成 PATH 问题');
+});
+
+// P-20261121-1：复用校验（手动切分支/多 HOME 撞 id 会让提交落到别处，合并侧误判「已合」静默归档）
+test('ensureWorktree 复用校验：检出分支不符（含 detached）→ worktree-branch-mismatch（含期望/实际）', () => {
+  const dir = tmpdir('schflow-gitutil-reuse-');
+  const repo = mkToyRepo(dir);
+  const wt = path.join(dir, 'wt-reuse');
+  ensureWorktree(repo, wt, 'schflow/P-20261121-1', 'main');
+
+  git(repo, ['branch', 'other']);
+  git(wt, ['checkout', 'other']);
+  assert.throws(
+    () => ensureWorktree(repo, wt, 'schflow/P-20261121-1', 'main'),
+    (e) => e.message.startsWith('worktree-branch-mismatch')
+      && e.message.includes('schflow/P-20261121-1') && e.message.includes('other') && e.message.includes(wt),
+    '分支不符须抛 worktree-branch-mismatch 且带期望/实际/路径',
+  );
+
+  git(wt, ['checkout', '--detach']);
+  assert.throws(
+    () => ensureWorktree(repo, wt, 'schflow/P-20261121-1', 'main'),
+    (e) => e.message.startsWith('worktree-branch-mismatch: 期望 schflow/P-20261121-1，实际 detached'),
+    'detached 按不符处理',
+  );
+});
+
+// P-20261121-1：-f 收紧——既有分支挂接失败不得用 -f 顶出第二个 checkout
+test('ensureWorktree 双 checkout 拒绝：同分支已在另一工作树检出 → 抛错且不产生第二检出', () => {
+  const dir = tmpdir('schflow-gitutil-dup-');
+  const repo = mkToyRepo(dir);
+  const wt1 = path.join(dir, 'wt-one');
+  const wt2 = path.join(dir, 'wt-two');
+  ensureWorktree(repo, wt1, 'schflow/P-20261121-2', 'main');
+
+  assert.throws(
+    () => ensureWorktree(repo, wt2, 'schflow/P-20261121-2', 'main'),
+    /worktree-add-failed/,
+    '同分支二次检出须响亮失败（-f 兜底仅限新建分支形态）',
+  );
+  const holdings = worktreeList(repo).filter((w) => w.branch === 'schflow/P-20261121-2');
+  assert.equal(holdings.length, 1, '同分支只允许一个工作树检出');
+  assert.equal(path.resolve(holdings[0].path), path.resolve(wt1), '唯一检出仍是首个工作树');
+  assert.ok(!worktreeList(repo).some((w) => path.resolve(w.path) === path.resolve(wt2)), '第二工作树未注册');
 });

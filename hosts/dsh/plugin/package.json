@@ -1,6 +1,6 @@
 {
   "name": "schflow-dsh-plugin",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "description": "dsh host integration for schflow — exposes the schflow skills (proposer / orchestrator / executor / improve) in dsh sessions via the native skill-filesystem provider",
   "type": "module",
   "license": "Apache-2.0",

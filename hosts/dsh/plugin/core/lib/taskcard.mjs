@@ -19,6 +19,8 @@ export const KINDS = ['code', 'fix', 'investigate', 'docs', 'research', 'chore']
 export const STATUSES = ['pending', 'approved', 'running', 'done', 'blocked', 'stale', 'rejected'];
 export const PRIORITIES = ['highest', 'high', 'medium', 'low'];
 export const SOURCE_TYPES = ['generator', 'human', 'patrol', 'harvest', 'improve', 'webhook'];
+// 作者 ≠ 触发源：source.type 决定信任等级（trust），source.author 决定是否必须过评审闸与显式批准。
+export const SOURCE_AUTHORS = ['human', 'model'];
 export const TRUST_BY_TYPE = {
   human: 'trusted', harvest: 'trusted',
   generator: 'semi', patrol: 'semi', improve: 'semi',
@@ -46,7 +48,7 @@ export function canTransition(from, to) {
 }
 
 const REQUIRED = ['id', 'kind', 'title', 'status', 'priority', 'source', 'dependsOn', 'sessionOnly', 'attempts', 'createdAt', 'updatedAt'];
-const OPTIONAL = ['project', 'profile', 'repo', 'parent', 'base', 'env', 'branch', 'deliverables', 'docs', 'result', 'triage', 'harvestSource'];
+const OPTIONAL = ['project', 'profile', 'repo', 'parent', 'base', 'env', 'branch', 'deliverables', 'docs', 'result', 'triage', 'harvestSource', 'approvedBy', 'approvedAt'];
 const ALL_KEYS = new Set([...REQUIRED, ...OPTIONAL]);
 
 /**
@@ -75,9 +77,10 @@ export function validateTaskCard(card, ctx = {}) {
   if (card.source) {
     if (typeof card.source !== 'object') push('source-type', 'not an object');
     else {
-      for (const k of Object.keys(card.source)) if (!['type', 'direction', 'trust'].includes(k)) push('source-unknown-field', k);
+      for (const k of Object.keys(card.source)) if (!['type', 'direction', 'trust', 'author'].includes(k)) push('source-unknown-field', k);
       if (!SOURCE_TYPES.includes(card.source.type)) push('source.type-enum', String(card.source.type));
       if (card.source.direction !== undefined && typeof card.source.direction !== 'string') push('source.direction-type', '');
+      if (card.source.author !== undefined && !SOURCE_AUTHORS.includes(card.source.author)) push('source.author-enum', String(card.source.author));
       if (!['trusted', 'semi', 'untrusted'].includes(card.source.trust)) push('source.trust-enum', String(card.source.trust));
       else if (card.source.type && TRUST_BY_TYPE[card.source.type] && card.source.trust !== TRUST_BY_TYPE[card.source.type]) {
         push('source.trust-mismatch', `${card.source.type} 应为 ${TRUST_BY_TYPE[card.source.type]}，实为 ${card.source.trust}`);
@@ -135,6 +138,16 @@ export function validateTaskCard(card, ctx = {}) {
     else if (dir.exclusiveHuman && card.source.type !== 'human') {
       push('direction-exclusive-human', `${card.source.direction} 仅 human 可用，实为 ${card.source.type}`);
     }
+  }
+  // 规则 6：批准留痕（trust 属来源，review 属内容）——author=model 的草案在批准后必须有 human 批准痕迹；
+  // 旧卡无 author 字段时缺省 human，行为零变化。
+  if (card.approvedBy !== undefined && card.approvedBy !== 'human') push('approvedBy-enum', String(card.approvedBy));
+  if (card.approvedAt !== undefined && (typeof card.approvedAt !== 'string' || !ISO_RE.test(card.approvedAt))) {
+    push('approvedAt-iso', String(card.approvedAt));
+  }
+  const author = card.source?.author ?? 'human';
+  if (author === 'model' && ['approved', 'running', 'done'].includes(card.status) && card.approvedBy !== 'human') {
+    push('approval-missing', `author=model 且 status=${card.status} 需 approvedBy: human`);
   }
   return v;
 }

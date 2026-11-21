@@ -147,6 +147,24 @@ function drainQueue(home, repo, base, list, { push, judge }) {
       out.push({ task: id, outcome: 'merge.failed', reason: 'branch-missing（挂起人工）' });
       return out; // 数据面可疑：停本队列
     }
+    // 数据面校验：执行器回报的提交必须落在本任务分支上——手动切分支/多 HOME 撞 id 会让提交落到
+    // 别处；分支留在旧尖（已是 base 祖先）时 already-ancestor 恢复会把它当「已合」静默归档，工作丢失。
+    // 通过（任一）：是分支祖先；或分支历史含 (<id>) 尾注——合并重试已 rebase 重写、原提交不再是
+    // 祖先，但提交内容仍在分支上（与幂等重入同一尾注锚约定）。两者皆否=数据可疑：停本队列挂人工。
+    // 置于分支失踪恢复之后：分支不存在时无从校验（该路只认「提交已在 base」=内容未丢的崩溃窗恢复，
+    // 其余仍走既有 branch-missing 响亮停队——不存在静默归档面）。
+    const reported = card.result?.commit;
+    if (reported) {
+      const onBranch = isAncestor(repo, reported, branch(id));
+      const tailHit = gitOk(repo, ['log', '--format=%H', branch(id), '--grep', `(${id})`]).trim() !== '';
+      if (!onBranch && !tailHit) {
+        const branchTip = gitOk(repo, ['rev-parse', branch(id)]);
+        appendEvent(home, { type: 'merge.failed', actor: 'engine', taskId: id, branch: branch(id), reason: 'commit-not-on-branch', detail: `${reported}@${branchTip}` });
+        transition(home, id, 'blocked', { extra: { reason: 'commit-not-on-branch' } });
+        out.push({ task: id, outcome: 'merge.failed', reason: 'commit-not-on-branch（提交不在任务分支，数据可疑；挂起人工）' });
+        return out; // 数据可疑：停本队列，不静默归档
+      }
+    }
     if (isAncestor(repo, branch(id), base)) {
       appendEvent(home, { type: 'merge.done', actor: 'engine', taskId: id, branch: branch(id), sha: gitOk(repo, ['rev-parse', base]), note: 'already-ancestor' });
       deleteBranchAndWorktree(repo, id);

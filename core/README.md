@@ -25,12 +25,13 @@ node core/programs/dispatch.mjs --auto --json
 | `merge` | per-(repo,base) 合并队列 | 见下 |
 | `event` | 事件追加（信封自动补） | 封闭枚举；`--allow-unknown-type` 逃生口；`--list` 只读回放查询（`--type/--task/--last`，不取锁） |
 | `harvest` | 转生收割（八程序扩展⑨；tick 第 3b 步） | done 的 investigate/research 报告显式 `schflow:spawn` 块 → fix 提案转生（pending 走评审闸）；`--all` 扫 open+归档区，`harvestSource` 锚幂等（源归档后重跑不重发）；落盘前自过门禁（违规 76 不落盘） |
-| `decide` | 人工裁决面（九程序；judge③ 转人的人侧出口） | blocked/stale/rejected 三态的人侧裁决：`--task <id> --to approved\|rejected\|stale [--note <理由>]`——转移必经 transition（actor=human + note 落 status.changed 事件）；目标态不在转移表=76 并列合法去向；approved 后派发仍走 dispatch 全链守卫（不绕审批闸） |
+| `decide` | 人工裁决面（九程序；pending 批准闸 + judge③ 转人的人侧出口） | **pending→approved = 提案批准**（`source.author=model` 卡自动盖 `approvedBy: human` + `approvedAt`，与状态翻转同一次原子写）；blocked/stale/rejected 三态的人侧裁决：`--task <id> --to approved\|rejected\|stale [--note <理由>]`——转移必经 transition（actor=human + note 落 status.changed 事件）；目标态不在转移表=76 并列合法去向；approved 后派发仍走 dispatch 全链守卫（不绕审批闸）；绕过程序手工直改 `status: approved` 而不盖章 → status/validate-task 以 `approval-missing` fail-closed |
 
 ### dispatch 补充
 
-- 可派 = 已批准 + 依赖已解除（目标终态）+ env 租约已获（取不到=跳过，原因 `env-wait` 入报告）+ 槽位（项目 `concurrency`，缺省 2；无项目任务吃 HOME 全局池）。多候选循环派发至槽满（满并行纪律）。
+- 可派 = 已批准 + 依赖已解除（目标终态）+ env 租约已获（取不到=跳过，原因 `env-wait` 入报告）+ 槽位（项目 `concurrency`，缺省 4；无项目任务吃 HOME 全局池）。多候选循环派发至槽满（满并行纪律）。
 - runner：Profile `runner:` 或 `--runner` ∈ `fake | claude | dsh | custom`（**无静默缺省**——防误用 fake）；custom 配 `runner-cmd`：**argv 数组形态（推荐，零 shell 直启，逐参数替换 `{book}`/`{cwd}`）** 或字符串形态（经平台 shell，引号/重定向语义平台相关——跨平台用数组）。claude/dsh 任务书恒走 stdin（dsh 用 `-`）。Windows 宿主 + WSL 内 dsh：`runner-cmd: ["node", "<schflow>/hosts/dsh/launcher/wsl-dsh.mjs", "{book}"]`（宿主包资产，core 无平台分支——跨平台纪律见下）。
+- **`phase-group`**（Profile boolean，缺省 false；仅 subprocess 家族 ∧ `runner` ∈ {claude,dsh}）：重派续跑上一轮执行器会话——dsh 恒传确定性 id `schflow-<taskId>`（同 id 天然续上，会话不存在则 dsh 新建=天然回落）；claude 首跑不续，重派从上一 run 的 `transcript.out` 提取 `session_id` 后追加 `--resume`（提取不到或上轮 `resumeFailed` → 不续）。每次派发落 `runs/<n>/session.json {runner,sessionId,resumed}`，`dispatched` 事件带 `session:{resumed}`；fold 折 `interrupted` 且该 run `resumed=true` → 记 `resumeFailed:true`（下轮放弃续跑）。护栏：native 家族不适用、只续引擎自己 spawn 的会话、续不上静默回落新会话；关闭时零行为变化。
 - **`--no-spawn`**：宿主原生家族（拨盘左）——只记账（worktree/租约/翻转/事件/pool），执行器由宿主 subagent 派生（任务书路径在返回 JSON 的 `taskBook`）。fold 对无 pid 条目只认 result.json + **超时判定**（`--native-timeout-min` 默认 120，与租约 TTL 同口径）或 `--force <id>` 人工强制折叠——宿主会话被配额墙/崩溃打断时无活性信号，这是唯一兜底（P0.5 dogfood 实测 429 配额墙暴露的缺口）。
 - **attempts 语义**：attempts 在**派发时**递增，runNo=attempts（第 n 次尝试=runs/n）；interrupted 折叠回 approved 不再加计——「中断=attempts+1 重派」的净效果由下一次派发兑现；配额类失败不进派发（无从递增）。
 - **`--plan`**：只读候选预演（dry-run，judge①/⑥ 派发前裁决的结构化候选面）——与真实派发共用同一评估器（status/依赖/槽位/repo·base 解析/env 匹配+租约可得性，同序同原因），输出每候选 将派发/暂缓+原因（`--json` 形态 `{plan:[{id,wouldDispatch,reason}]}`）。零状态变更零事件（不取写锁/不回收孤儿租约/不建 worktree/不取租约/不翻转），恒 exit 0（参数非法才非 0；与 `--retry` 互斥）。advisory only——预演不预留租约/槽位，真实派发仍重新评估。
@@ -53,10 +54,10 @@ $SCHFLOW_HOME/                    # 默认 ~/.schflow；SCHFLOW_HOME 覆盖；�
     open/<ID>/                    # 活跃任务（目录自包含）
       task.yaml                   #   任务卡（唯一事实源，schema=docs/spec/task-card.md）
       proposal.md                 #   五件套正稿
-      runs/<n>/                   #   每次尝试：task-book.md / result.json / transcript.{out,err} / output.md
+      runs/<n>/                   #   每次尝试：task-book.md / result.json / transcript.{out,err} / output.md / session.json（phase-group）
       design/ plan/ deliverables/ review.md
     done/<YYYY-MM>/<ID>/          # 终态归档（月分卷；fold done(非git)与 merge.done 触发）
-  projects/<name>/schflow.yaml    # 项目区 Profile（字段：repo/default-base/concurrency/runner/
+  projects/<name>/schflow.yaml    # 项目区 Profile（字段：repo/default-base/concurrency/phase-group/runner/
                                   #   runner-cmd/executor/model-pool/mounts/verify/schemaVersion/ref）
   projects/<name>/envs.yaml       # 项目层环境池（同名覆盖 HOME 层）
   events-YYYY-MM.jsonl            # 事件流（月分卷，seq 跨卷全局单调；崩溃恢复正典源）
@@ -74,6 +75,8 @@ $SCHFLOW_HOME/                    # 默认 ~/.schflow；SCHFLOW_HOME 覆盖；�
 **身份自证**：所有程序 `--json` 主输出含 `home`（写入/读取的库绝对路径；`event --list` 恒为事件数组，形态不变），`status` 另含 `version`（`--version` 只打印版本号，不解析 HOME）；HOME 目录此前不存在时向 stderr 打一行 `schflow: 新建空库 <绝对路径>（首次使用；--home / SCHFLOW_HOME 可指定其他库）`——`SCHFLOW_QUIET=1` 静默（测试用）。
 
 **worktree 布局**（仓库外侧，同盘）：`<repo 父>/.schflow-worktrees/<repo 名>/<ID>`（执行工作树）与 `.../merge-<base>`（合并工作树，detached——与任何 checkout 零互斥）。工作分支 `schflow/<ID>`。
+
+**工作树安全校验**（P-20261121-1）：`ensureWorktree` 复用已注册工作树前校验其检出分支 == 期望分支——手动切分支/多 HOME 撞 id 时抛 `worktree-branch-mismatch: 期望 <branch>，实际 <actual>（<path>）`（detached 计入不符），dispatch 以该原因暂缓候选（专用原因码，非笼统 `worktree-failed`）。`-f` 兜底收紧：既有分支挂接形态清理 + prune 重试一次仍失败即抛错（附 git stderr 摘要，**不用 `-f`**——杜绝同分支双 checkout）；仅新建分支（`-b`）形态最后一次允许 `-f`。merge 在已合/祖先判定前校验执行器回报的 `result.commit` 落在任务分支：通过条件 = 是分支祖先 **或** 分支历史含 `(<ID>)` 尾注（合并重试已 rebase 重写提交的兜底，与幂等重入同一锚约定）；两者皆否 → `merge.failed: commit-not-on-branch` + blocked + 停本队列（数据可疑，不静默归档）。
 
 **并发纪律**：HOME 写锁=短临界区（一切状态写，程序内置）；tick 锁=per-project（orchestrator 侧）；merge 锁=per-(repo,base)。状态写全部 tmp+rename 原子写。
 

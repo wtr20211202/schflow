@@ -12,8 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// 版本一致性守卫（版本说真话）：四处清单版本必须相等；bin 指向存在的 .mjs；
-// `schflow --version` 输出与根 package.json 版本一致（发布前跑 scripts/bump-version.sh）。
+// 版本一致性守卫（版本说真话）：四处清单版本必须相等；package-lock.json 根版本（两处）与
+// package.json 一致；bin 指向存在的 .mjs；`schflow --version` 输出与根 package.json 版本一致
+// （发布前跑 scripts/bump-version.sh）。
 import test from 'node:test';
 import assert from 'node:assert';
 import fs from 'node:fs';
@@ -39,6 +40,17 @@ test('四处版本清单相等（bump-version.sh 的四个落点）', () => {
     [...new Set(Object.values(versions))],
     [pkg.version],
     `版本漂移——四处必须相等（跑 scripts/bump-version.sh <x.y.z>）：${JSON.stringify(versions)}`,
+  );
+});
+
+test('package-lock.json 根版本两处与 package.json 一致（version / packages[""].version）', () => {
+  assert.ok(fs.existsSync(path.join(PKG_ROOT, 'package-lock.json')), 'package-lock.json 缺失（应入库随发布快照走）');
+  const lock = readJson('package-lock.json');
+  assert.equal(lock.version, pkg.version, `package-lock.json.version 漂移：${lock.version} ≠ ${pkg.version}（跑 scripts/bump-version.sh <x.y.z>）`);
+  assert.equal(
+    lock.packages?.['']?.version,
+    pkg.version,
+    `package-lock.json packages[""].version 漂移：${lock.packages?.['']?.version} ≠ ${pkg.version}（跑 scripts/bump-version.sh <x.y.z>）`,
   );
 });
 

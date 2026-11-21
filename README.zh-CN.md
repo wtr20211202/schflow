@@ -52,10 +52,10 @@ dsh plugin --profile schflow add "github:wtr20211202/schflow#path:hosts/dsh/plug
 ## 快速上手
 
 ```bash
-git clone https://github.com/wtr20211202/schflow.git && cd schflow && npm install
+git clone https://github.com/wtr20211202/schflow.git && cd schflow
 export SCHFLOW_HOME=~/.schflow            # 流水线家目录（自动创建）
 
-# 立一条提案（human 快车道：即批准）
+# 立一条提案（人自己撰写=创建即批准；模型代笔=pending，decide 批准后派发）
 node core/programs/next-id.mjs                                        # → P-YYYYMMDD-1
 node core/programs/dup-check.mjs --title "想法一句话" --anchor 锚点    # 查重
 node core/programs/validate-task.mjs --task <id>                      # 格式门禁
@@ -68,6 +68,10 @@ node core/programs/fold.mjs --json && node core/programs/merge.mjs --json
 装好插件的智能体会话里（claude code 或 dsh），直接说：*「列出你的 schflow 技能」「提一个改进提案」「跑一轮 tick」「看看板」「审计一下纪律」*。
 
 > 完整生命周期——提案 → 评审闸 → 并行执行 → 合并队列 → 推送——见[设计文档](docs/design.md)与宿主说明：[claude code](hosts/claude-code/README.md) · [dsh](hosts/dsh/README.md) · [ZCode](hosts/zcode/README.md)。
+
+## 立一条提案
+
+不必先写全文——**一句话就够**。你的智能体会代笔扩写五件套提案（动机 / 方案 / 价值 / 规模 / 风险），做四问冷眼自审，并以 `source.author: model`、`status: pending` 立项：`proposal.md` 落 `评审：` 行与 `## 原始诉求（human）`（逐字保留你的原话）。在你给出一次明确批准（`decide --task <id> --to approved`，自动盖 `approvedBy: human` + `approvedAt`）之前不会派发；模型代笔的卡禁止创建即 approved。自己写全文也照旧——human 作者卡保留快车道。
 
 ## 接入一个项目
 

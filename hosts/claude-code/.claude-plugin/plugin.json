@@ -1,6 +1,6 @@
 {
   "name": "schflow",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "description": "schflow host integration for claude code — skills (proposer/orchestrator/executor/improve/audit), slash commands (/propose /board /tick) and an executor subagent for the proposal-driven task pipeline",
   "author": {
     "name": "schflow contributors"

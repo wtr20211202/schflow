@@ -36,6 +36,7 @@ version: 0.1.4
 - **环境变量**：`SCHFLOW_TASK_ID / SCHFLOW_RUN_NO / SCHFLOW_RUN_DIR / SCHFLOW_TASK_DIR / SCHFLOW_WORKTREE / SCHFLOW_BASE`；声明了验证环境的任务另有 `SCHFLOW_LEASE_ENV / SCHFLOW_LEASE_REF`（ref 指向参考文件/句柄——环境细节你自行查阅，引擎不经手）；
 - **worktree**：git 轨道任务的全部改动在 `SCHFLOW_WORKTREE` 内；分支 `schflow/<id>` 从 base 起；
 - **挂载面**：Profile/任务声明的知识与第三方技能包（路径在任务书或 mounts 清单）——是否用、何时用，你判断；
+- **工作流编排（A1）**：宿主若提供工作流工具，可在任务内部自行编排子步骤（如分文件实施 → 自检 → 小修）；`result.json` 契约、提交规范、红线与引擎复验不变（工作流是推进手段，不是产物契约的替代）；
 - **提交规范**：提交信息一句话说清改动 + 尾注 `(<id>)`；多提交允许，每个都带尾注（幂等重入靠它 grep）。
 
 ## 红线（不可协商）

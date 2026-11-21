@@ -127,7 +127,11 @@ try {
       try {
         ensureWorktree(repo, worktree, branch, base);
       } catch (e) {
-        defer('worktree-failed', e.message.slice(0, 200)); continue;
+        // 复用校验不符（手动切分支/多 HOME 撞 id）=数据面异常，与「建失败」分开报因；
+        // 两类都只暂缓该候选，不阻塞后续
+        const detail = e.message.slice(0, 200);
+        defer(e.message.startsWith('worktree-branch-mismatch') ? 'worktree-branch-mismatch' : 'worktree-failed', detail);
+        continue;
       }
     }
 
@@ -171,6 +175,11 @@ try {
     const runnerCmd = values['runner-cmd'] ?? profile?.['runner-cmd'] ?? null;
     if (!runner && !values['no-spawn']) { defer('runner-unconfigured', 'Profile runner 或 --runner 二选一（防误用：无静默缺省；原生家族用 --no-spawn）'); continue; }
 
+    // phase-group 会话折叠（优化档，缺省关闭）：仅 subprocess 家族 ∧ Profile phase-group===true ∧ runner∈{claude,dsh}
+    const isNative = !!values['no-spawn'];
+    const phaseGroup = !isNative && profile?.['phase-group'] === true && (runner === 'claude' || runner === 'dsh');
+    const sessionInfo = phaseGroup ? resolveSession({ runner, taskId: card.id, runNo, taskDir }) : null;
+
     const promptVersion = resolvePromptVersion('executor');
     const bookPath = path.join(runDir, 'task-book.md');
     const prevRuns = runNo > 1 ? Array.from({ length: runNo - 1 }, (_, i) => i + 1) : [];
@@ -186,10 +195,9 @@ try {
     appendEvent(home, { type: 'status.changed', actor: 'engine', taskId: card.id, from: 'approved', to: 'running', runNo });
 
     try {
-      const isNative = !!values['no-spawn']; // 宿主原生家族：记账在此，派生在宿主 subagent（v1.0.2/03 两家族）
       const launcher = isNative
         ? { launcher: values.launcher ?? 'host-native', cli: values.launcher ?? 'host-native' }
-        : buildLauncher({ runner, runnerCmd, model: values.model ?? profile?.['model-pool']?.[0], bookPath, cwd: worktree ?? taskDir, repo });
+        : buildLauncher({ runner, runnerCmd, model: values.model ?? profile?.['model-pool']?.[0], bookPath, cwd: worktree ?? taskDir, repo, resumeSession: sessionInfo?.sessionId });
       const env = {
         SCHFLOW_TASK_ID: card.id, SCHFLOW_RUN_NO: String(runNo), SCHFLOW_RUN_DIR: runDir,
         SCHFLOW_TASK_DIR: taskDir, SCHFLOW_WORKTREE: worktree ?? '', SCHFLOW_BASE: base ?? '',
@@ -198,6 +206,8 @@ try {
         ...(runner === 'fake' ? { SCHFLOW_FAKE_MODE: values['fake-mode'] ?? 'done' } : {}),
       };
       const pid = isNative ? null : spawnExecutor({ launcher, runDir, env });
+      // 会话账本（仅 phase-group 启用时）：fold 对 interrupted∧resumed=true 记 resumeFailed，下轮据此回落
+      if (sessionInfo) atomicWriteJson(path.join(runDir, 'session.json'), { runner, sessionId: sessionInfo.sessionId, resumed: sessionInfo.resumed });
       pool.inFlight.push({
         taskId: card.id, runNo, pid, family: isNative ? 'native' : 'subprocess', launcher: launcher.launcher, cli: launcher.cli,
         worktree: worktree ?? null, branch: branch ?? null, env: lease?.name ?? null, scope,
@@ -209,6 +219,7 @@ try {
         family: isNative ? 'native' : 'subprocess', launcher: launcher.launcher, cli: launcher.cli,
         model: values.model ?? profile?.['model-pool']?.[0] ?? null,
         mounts, worktree: worktree ?? null, branch: branch ?? null, promptVersion,
+        ...(sessionInfo ? { session: { resumed: sessionInfo.resumed } } : {}),
       });
       dispatched.push({
         id: card.id, runNo, pid, family: isNative ? 'native' : 'subprocess',
@@ -248,6 +259,32 @@ function readPool(home) {
 
 function entryScope(e) { return e.scope ?? '(global)'; }
 
+/** phase-group 会话解析（调用方保证：subprocess 家族 ∧ phase-group=true ∧ runner∈{claude,dsh}）。
+ *  护栏：只续**引擎自己 spawn 的**执行器会话——dsh 用确定性 id，claude 只读本任务 runs/ 的转写，
+ *  绝不读取/续接用户会话；续不上（无转写/无 session_id/上轮 resumeFailed）→ 静默回落新会话。
+ *  dsh：id 恒传（同 id 天然续上，不存在则 dsh 新建——天然回落）；claude：首跑不续，重派才提取。 */
+function resolveSession({ runner, taskId, runNo, taskDir }) {
+  if (runner === 'dsh') return { sessionId: `schflow-${taskId}`, resumed: runNo > 1 };
+  if (runNo <= 1) return { sessionId: null, resumed: false };
+  const prevDir = path.join(taskDir, 'runs', String(runNo - 1));
+  let prev = null;
+  try { prev = JSON.parse(fs.readFileSync(path.join(prevDir, 'session.json'), 'utf8')); } catch { /* 无账本=按未续处理 */ }
+  if (prev?.resumeFailed === true) return { sessionId: null, resumed: false }; // 上轮续跑失败 → 全新会话
+  const sessionId = extractSessionId(path.join(prevDir, 'transcript.out'));
+  return sessionId ? { sessionId, resumed: true } : { sessionId: null, resumed: false };
+}
+
+/** 从 claude `-p --output-format json` 的终态 JSON 提取 session_id（取最后一处——转写尾行才是终态）。 */
+function extractSessionId(transcriptPath) {
+  try {
+    const text = fs.readFileSync(transcriptPath, 'utf8');
+    const re = /"session_id"\s*:\s*"([^"]+)"/g;
+    let m, last = null;
+    while ((m = re.exec(text)) !== null) last = m[1];
+    return last;
+  } catch { return null; }
+}
+
 /** 依赖状态解析（严格只读）：open 面（byId）→ 归档面（done/<月>，findTaskDir 已覆盖）→ unknown。
  *  归档回退只做 findTaskDir/loadCard，不写卡、不动 byId 的其它用途（sweep/--retry/--task 候选）。 */
 function depStatus(home, byId, id) {
@@ -282,7 +319,7 @@ function evaluateCandidate(card, { home, byId, pool, concurrencyHint }) {
   // 槽位（并发可调；无项目任务吃 HOME 级全局池，互不挤占）
   const profile = routeProfile(home, card);
   const scope = card.project ?? '(global)';
-  const cap = Number(concurrencyHint ?? profile?.concurrency ?? 2);
+  const cap = Number(concurrencyHint ?? profile?.concurrency ?? 4);
   const used = pool.inFlight.filter((e) => (entryScope(e) === scope)).length;
   if (used >= cap) return no('slots-full', `${scope} ${used}/${cap}`);
 

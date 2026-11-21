@@ -11,7 +11,10 @@
 | `title` | string | ✓ | 非空，≤120 字符 |
 | `status` | enum | ✓ | `待决策` \| `已批准` \| `进行中` \| `已做` \| `受阻` \| `已过时` \| `已否`（七态封闭集）——写英文键 `pending/approved/running/done/blocked/stale/rejected`，展示层映射中文 |
 | `priority` | enum | ✓ | `highest` \| `high` \| `medium` \| `low`；`highest` 仅 source=human 合法（校验器机械拒绝，P2-2） |
-| `source` | object | ✓ | `{type, direction?, trust}`；type 枚举 `generator` \| `human` \| `patrol` \| `harvest` \| `improve` \| `webhook`；direction 引用 `directions/<name>`；trust ∈ `trusted`（human/harvest）\| `semi`（generator/patrol/**improve**）\| `untrusted`（webhook）——**内容面防御输入（§5.2 对策 6；正典位见 programs.md direction schema）** |
+| `source` | object | ✓ | `{type, direction?, trust, author?}`；type 枚举 `generator` \| `human` \| `patrol` \| `harvest` \| `improve` \| `webhook`；direction 引用 `directions/<name>`；trust ∈ `trusted`（human/harvest）\| `semi`（generator/patrol/**improve**）\| `untrusted`（webhook）——**内容面防御输入（§5.2 对策 6；正典位见 programs.md direction schema）** |
+| `source.author` | enum? | – | `human` \| `model`（缺省 `human`——旧卡行为零变化）。`model` = 会话模型代笔/生成草案：入库须过评审闸（proposal.md 含 `^评审[：:]` 行），批准须留痕（见规则 6/7）。trust 属于来源（type），review 属于内容（author），二者独立 |
+| `approvedBy` | enum? | – | 仅允许 `human`；`source.author=model` ∧ `status ∈ {approved,running,done}` 时必须存在（违规码 `approval-missing`；status/validate-task fail-closed） |
+| `approvedAt` | ISO8601? | – | 批准时间（`decide` pending→approved 自动盖章）；出现时须为 ISO8601 |
 | `dependsOn` | string[] | ✓ | 各项为合法 id；依赖目标已终结（done/stale/rejected）即视为解除 |
 | `sessionOnly` | bool | ✓ | 默认 false |
 | `project` | string? | – | 项目区名；缺省 = 全局池任务（§8） |
@@ -33,12 +36,12 @@
 
 ## 校验规则（格式门禁）
 
-1. 未知字段拒绝（ADR-0022 严格校验教训）；2. 枚举/正则如上；3. status 流转只允许下述转移表（非法跳转拒绝——**实现正典**，v1.0.13 落档）；4. `priority=highest ∧ source.type≠human` → 拒绝；5. direction 含 `exclusive-human: true` 且调用源非 human → 拒绝（**validate-task 程序**机械防线）。
+1. 未知字段拒绝（ADR-0022 严格校验教训）；2. 枚举/正则如上；3. status 流转只允许下述转移表（非法跳转拒绝——**实现正典**，v1.0.13 落档）；4. `priority=highest ∧ source.type≠human` → 拒绝；5. direction 含 `exclusive-human: true` 且调用源非 human → 拒绝（**validate-task 程序**机械防线）；6. `source.author=model ∧ status ∈ {approved,running,done}` ⇒ `approvedBy` 必须为 `human`（违规码 `approval-missing`）；`approvedBy` 出现时只允许 `human`，`approvedAt` 出现时须 ISO8601；7. 入库评审闸（validate-task）：`source.author=model` 时 `<taskDir>/proposal.md` 必须存在一行 `^评审[：:]`（四问自审结论），缺失 = `review-missing`（exit 76）。
 
 ### 转移表（规则 3 的显式形态）
 
 ```
-pending  → approved | rejected | stale
+pending  → approved | rejected | stale          # approved = 批准（decide 盖 approvedBy/approvedAt）
 approved → running | rejected | stale
 running  → done | blocked | stale | approved   # approved = interrupted 重派回炉
 blocked  → approved | stale | rejected         # approved = 回炉重派（人工/修复后）
@@ -49,4 +52,4 @@ rejected → approved                            # 人工 reopen
 
 设计注：done→blocked 仅为合并队列 ejected 保留（复验失败/出口扫描命中回炉）；done 的常规去向是归档（月分卷），归档不改 status。
 
-人工裁决面=decide 程序（blocked/stale/rejected 三态的人侧出口）：`decide --task <id> --to approved（回炉）| rejected（关闭）| stale（收官） [--note <一句话裁决理由>]`，actor=human 落 status.changed 事件（note 随事件留痕）；approved 后派发仍走 dispatch 评估器全链守卫。
+人工裁决面=decide 程序（pending 批准闸 + blocked/stale/rejected 三态的人侧出口）：`decide --task <id> --to approved（批准/回炉）| rejected（关闭）| stale（收官） [--note <一句话裁决理由>]`，actor=human 落 status.changed 事件（note 随事件留痕）；approved 后派发仍走 dispatch 评估器全链守卫。**pending→approved 为提案批准**：模型代笔卡（`source.author=model`）由 decide 自动盖 `approvedBy: human` + `approvedAt`（与状态翻转同一次原子写）；绕过程序手工直改 `status: approved` 而不盖章，会被 status/validate-task 以 `approval-missing` fail-closed。

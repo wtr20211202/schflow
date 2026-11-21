@@ -82,3 +82,42 @@ test('validate-task：highest 非 human 机械拒绝（exit 76）', async () => 
   assert.equal(r.code, 76);
   assert.match(r.stderr, /priority-highest-nonhuman/);
 });
+
+test('validate-task：author=model 无「评审：」行 → 76（review-missing）；有则通过；旧卡不走评审闸', async () => {
+  const home = tmpdir('schflow-intake3-');
+  const source = { type: 'human', trust: 'trusted', author: 'model' };
+
+  await addTask(home, { id: 'P-20261121-1', kind: 'docs', title: '模型代笔无评审', source },
+    '# 提案\n\n动机：测试。\n');
+  const r = run('validate-task', ['--task', 'P-20261121-1'], { home, expectFail: true });
+  assert.equal(r.code, 76, `缺评审行=76：${r.stdout || r.stderr}`);
+  assert.match(r.stderr, /review-missing/, '违规码点名 review-missing');
+
+  await addTask(home, { id: 'P-20261121-2', kind: 'docs', title: '模型代笔有评审', source },
+    '# 提案\n\n动机：测试。\n\n评审：通过——值得做且方案最简。\n');
+  const ok = run('validate-task', ['--task', 'P-20261121-2'], { home });
+  assert.match(ok.stdout, /通过/, '评审行在=通过');
+
+  await addTask(home, { id: 'P-20261121-3', kind: 'docs', title: 'human 自己写全文' });
+  const human = run('validate-task', ['--task', 'P-20261121-3'], { home });
+  assert.match(human.stdout, /通过/, '无 author 的旧卡行为不变');
+});
+
+test('status fail-closed：model 卡手工置 approved 且无 approvedBy → exit 76（approval-missing）', async () => {
+  const home = tmpdir('schflow-intake4-');
+  const id = 'P-20261121-9';
+  await addTask(home, {
+    id, kind: 'docs', title: '手工置批准',
+    source: { type: 'human', trust: 'trusted', author: 'model' },
+  }, '# 提案\n\n评审：通过\n');
+
+  // 绕过 decide 直改卡面：状态已 approved，但没有批准痕迹
+  const { loadCard } = await import('../../lib/store.mjs');
+  const { writeYaml } = await import('../../lib/yamlfile.mjs');
+  const cardPath = path.join(home, 'tasks', 'open', id, 'task.yaml');
+  writeYaml(cardPath, { ...loadCard(path.dirname(cardPath)), status: 'approved' });
+
+  const st = run('status', [], { home, expectFail: true });
+  assert.equal(st.code, 76, `fail-closed exit 76：${st.stdout || st.stderr}`);
+  assert.match(st.stderr, /approval-missing/, 'status 拒绝无批准痕迹的 approved 卡');
+});

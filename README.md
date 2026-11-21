@@ -52,10 +52,10 @@ Requires: node ≥ 20 and git. The plugin is **self-contained**: it ships the sk
 ## Quick start
 
 ```bash
-git clone https://github.com/wtr20211202/schflow.git && cd schflow && npm install
+git clone https://github.com/wtr20211202/schflow.git && cd schflow
 export SCHFLOW_HOME=~/.schflow            # pipeline home (auto-created)
 
-# file a proposal (human fast lane: auto-approved)
+# file a proposal (human-authored: approved at creation; agent-drafted: pending until decide)
 node core/programs/next-id.mjs                                        # → P-YYYYMMDD-1
 node core/programs/dup-check.mjs --title "your idea" --anchor anchor1 # dedup check
 node core/programs/validate-task.mjs --task <id>                      # format gate
@@ -68,6 +68,10 @@ node core/programs/fold.mjs --json && node core/programs/merge.mjs --json
 In an agent session (claude code or dsh, with the plugin installed), just ask: *"list your schflow skills", "propose an improvement", "run one tick", "show the board", "audit the discipline"*.
 
 > For the full lifecycle — proposal → review gate → parallel executors → merge queue → push — see the [design doc](docs/design.md) and the host READMEs: [claude code](hosts/claude-code/README.md) · [dsh](hosts/dsh/README.md) · [ZCode](hosts/zcode/README.md).
+
+## Filing a proposal
+
+You don't need a full proposal to start — **one sentence is enough**. Your agent drafts the five-part proposal (motivation / plan / value / size / risks), runs the four-question cold review, and files the card as `source.author: model`, `status: pending` with a `评审：` line and `## 原始诉求（human）` (your request, verbatim). Nothing dispatches until you give one explicit approval (`decide --task <id> --to approved`), which stamps `approvedBy: human` + `approvedAt`; model-drafted cards are never created approved. Writing the full text yourself still works — a human-authored card keeps the fast lane.
 
 ## Register a project
 

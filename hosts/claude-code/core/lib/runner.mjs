@@ -38,8 +38,11 @@ export function resolvePromptVersion(role = 'executor') {
   } catch { return 'unknown'; }
 }
 
-/** 组装启动器（不 spawn）：返回 {launcher, cli, args, opts, stdinFile?} */
-export function buildLauncher({ runner = 'fake', runnerCmd, model, bookPath, cwd, repo }) {
+/** 组装启动器（不 spawn）：返回 {launcher, cli, args, opts, stdinFile?}
+ *  resumeSession（可选）：phase-group 会话续跑——claude 追加 `--resume <id>`、dsh 追加 `--session-id <id>`；
+ *  其它 runner 忽略（native 家族无独立会话可续，调用方根本不传）。id 只能来自本任务 runs/ 的转写
+ *  （dispatch 提取），绝不触达用户会话——护栏见 dispatch.mjs resolveSession 头注。 */
+export function buildLauncher({ runner = 'fake', runnerCmd, model, bookPath, cwd, repo, resumeSession }) {
   if (runner === 'custom') {
     if (!runnerCmd) throw new Error('runner=custom 需要 runner-cmd（Profile 或 --runner-cmd）');
     if (Array.isArray(runnerCmd)) {
@@ -57,6 +60,7 @@ export function buildLauncher({ runner = 'fake', runnerCmd, model, bookPath, cwd
     const args = ['-p', '--output-format', 'json'];
     if (model) args.push('--model', model);
     args.push(...String(runnerCmd || '').split(/\s+/).filter(Boolean));
+    if (resumeSession) args.push('--resume', String(resumeSession));
     return { launcher: 'claude', cli: 'claude', args, opts: { cwd }, stdinFile: bookPath };
   }
   if (runner === 'dsh') {
@@ -70,6 +74,8 @@ export function buildLauncher({ runner = 'fake', runnerCmd, model, bookPath, cwd
       args.push('--permission-mode', 'workspace-write');
       args.push('--add-dir', path.join(repo, '.git'));
     }
+    // `--session-id` 必须在位置参数 `-`（stdin）之前；dsh 侧同 id 即续、不存在即新建（天然回落）
+    if (resumeSession) args.push('--session-id', String(resumeSession));
     args.push('-');
     return { launcher: 'dsh', cli: 'dsh', args, opts: { cwd }, stdinFile: bookPath };
   }

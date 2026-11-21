@@ -18,10 +18,11 @@
 
 ## dispatched 专有字段（防漂移与审计的载体）
 
-`{family: native|subprocess, launcher, cli, model, mounts:[{path,version}], worktree, branch, promptVersion}`
+`{family: native|subprocess, launcher, cli, model, mounts:[{path,version}], worktree, branch, promptVersion, session?:{resumed}}`
 
 - `promptVersion` = 所加载提示词文件 frontmatter `version`（P1-14：派发事件记录版本；doctor 比对 skills 包与 core 期望版本，不一致=警告）；
-- `mounts[].version` = 解析后 pin（§5.1 对策 2）。
+- `mounts[].version` = 解析后 pin（§5.1 对策 2）；
+- `session`（可选，仅 Profile `phase-group` 启用的子进程家族 claude/dsh）= `{resumed:boolean}`：本次派发是否续跑上一轮执行器会话；会话账本 `runs/<n>/session.json`（见 core/README phase-group 段）。
 
 ## 回放协议
 

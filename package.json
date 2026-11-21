@@ -1,6 +1,6 @@
 {
   "name": "schflow",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "description": "Proposal-driven task pipeline for AI coding agents — proposal → approval → parallel worktree execution → queued merge. Works with claude code / dsh / ZCode as executors.",
   "type": "module",
   "license": "Apache-2.0",

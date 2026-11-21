@@ -84,3 +84,37 @@ test('normalizeCard 默认值补齐不覆盖', () => {
   assert.equal(c.sessionOnly, false);
   assert.deepEqual(c.dependsOn, []);
 });
+
+test('author 枚举：human/model 合法，其它拒绝', () => {
+  assert.deepEqual(validateTaskCard({ ...base(), source: { type: 'human', trust: 'trusted', author: 'human' } }), []);
+  assert.deepEqual(validateTaskCard({ ...base(), source: { type: 'human', trust: 'trusted', author: 'model' } }), []);
+  const v = validateTaskCard({ ...base(), source: { type: 'human', trust: 'trusted', author: 'robot' } });
+  assert.ok(v.some((s) => s.startsWith('source.author-enum')), `author 枚举: ${v}`);
+});
+
+test('author=model：approved/running/done 缺 approvedBy → approval-missing', () => {
+  const model = () => ({ type: 'human', trust: 'trusted', author: 'model' });
+  for (const status of ['approved', 'running', 'done']) {
+    const v = validateTaskCard({ ...base(), status, source: model() });
+    assert.ok(v.some((s) => s.startsWith('approval-missing')), `${status} 需批准留痕: ${v}`);
+  }
+  // pending 阶段不要求批准痕迹
+  assert.deepEqual(validateTaskCard({ ...base(), status: 'pending', source: model() }), []);
+  // decide 起草的批准痕迹让卡通过
+  assert.deepEqual(validateTaskCard({
+    ...base(), status: 'approved', source: model(), approvedBy: 'human', approvedAt: '2026-11-21T10:00:00Z',
+  }), []);
+});
+
+test('向后兼容：无 author 的旧卡 approved 无需 approvedBy', () => {
+  assert.deepEqual(validateTaskCard({ ...base(), status: 'approved' }), []);
+  assert.deepEqual(validateTaskCard({ ...base(), status: 'running' }), []);
+  assert.deepEqual(validateTaskCard({ ...base(), status: 'done' }), []);
+});
+
+test('approvedBy 仅允许 human；approvedAt 出现即须 ISO', () => {
+  const v = validateTaskCard({ ...base(), approvedBy: 'model' });
+  assert.ok(v.some((s) => s.startsWith('approvedBy-enum')), `approvedBy 非 human: ${v}`);
+  const v2 = validateTaskCard({ ...base(), approvedBy: 'human', approvedAt: 'yesterday' });
+  assert.ok(v2.some((s) => s.startsWith('approvedAt-iso')), `approvedAt 非 ISO: ${v2}`);
+});

@@ -106,3 +106,76 @@ test('decide 无 note：事件无 note 字段；缺参守卫=MISSING(2)+用法�
   assert.equal(m2.code, 2, `缺 --to → MISSING(2)：${m2.stderr}`);
   assert.match(m2.stderr, /用法/);
 });
+
+test('decide pending→approved：model 代笔卡盖 approvedBy/approvedAt + 事件 actor=human', async () => {
+  const home = tmpdir('schflow-decide-');
+  const id = 'P-20261121-1';
+  await addTask(home, {
+    id, kind: 'docs', title: '模型代笔提案',
+    source: { type: 'human', trust: 'trusted', author: 'model' },
+  }, '# 提案\n\n动机：测试。\n\n评审：通过——值得做且方案最简。\n');
+
+  const before = Date.now();
+  const r = run('decide', ['--task', id, '--to', 'approved', '--json'], { home });
+  assert.equal(r.code, 0, `exit 0：${r.stdout || r.stderr}`);
+  assert.deepEqual(r.json, { ok: true, id, from: 'pending', to: 'approved', home }, '--json 形态不变');
+
+  // 卡面：状态翻转 + 批准痕迹同一次原子写
+  const { findTaskDir, loadCard } = await import('../../lib/store.mjs');
+  const card = loadCard(findTaskDir(home, id));
+  assert.equal(card.status, 'approved', '卡面 pending→approved');
+  assert.equal(card.approvedBy, 'human', 'approvedBy=human（批准留痕）');
+  assert.equal(typeof card.approvedAt, 'string');
+  assert.ok(!Number.isNaN(Date.parse(card.approvedAt)), `approvedAt 为 ISO：${card.approvedAt}`);
+  assert.ok(Date.parse(card.approvedAt) >= before - 1000, 'approvedAt 是本次批准时间');
+
+  // 事件面：恰好一条 pending→approved，actor=human
+  const { readEvents } = await import('../../lib/events.mjs');
+  const changed = readEvents(home, { types: ['status.changed'] })
+    .filter((e) => e.taskId === id && e.from === 'pending' && e.to === 'approved');
+  assert.equal(changed.length, 1, `恰好一条 pending→approved 事件：${JSON.stringify(changed)}`);
+  assert.equal(changed[0].actor, 'human', 'actor=human（可审计）');
+
+  // 盖章后过得了入库门禁与 status fail-closed
+  const v = run('validate-task', ['--task', id], { home });
+  assert.match(v.stdout, /通过/, '盖章后 validate-task 通过');
+  const st = run('status', [], { home });
+  assert.equal(st.code, 0, `盖章后 status 通过：${st.stderr}`);
+});
+
+test('decide pending→rejected：不盖批准痕迹', async () => {
+  const home = tmpdir('schflow-decide-');
+  const id = 'P-20261121-2';
+  await addTask(home, {
+    id, kind: 'docs', title: '模型代笔被否',
+    source: { type: 'human', trust: 'trusted', author: 'model' },
+  }, '# 提案\n\n评审：通过\n');
+
+  const r = run('decide', ['--task', id, '--to', 'rejected', '--note', '不做'], { home });
+  assert.equal(r.code, 0, `exit 0：${r.stdout || r.stderr}`);
+
+  const { findTaskDir, loadCard } = await import('../../lib/store.mjs');
+  const card = loadCard(findTaskDir(home, id));
+  assert.equal(card.status, 'rejected', '卡面 pending→rejected');
+  assert.ok(!('approvedBy' in card), 'rejected 不写 approvedBy');
+  assert.ok(!('approvedAt' in card), 'rejected 不写 approvedAt');
+});
+
+test('transition patch：字段与状态同一次落卡，事件只记 from/to（decide 之外的补丁语义）', async () => {
+  const home = tmpdir('schflow-decide-');
+  const id = 'P-20261121-3';
+  await addTask(home, { id, kind: 'docs', title: 'patch 语义' });
+
+  const { transition } = await import('../../lib/store.mjs');
+  const { findTaskDir, loadCard } = await import('../../lib/store.mjs');
+  transition(home, id, 'approved', { actor: 'human', patch: { approvedBy: 'human', approvedAt: '2026-11-21T00:00:00Z' } });
+  const card = loadCard(findTaskDir(home, id));
+  assert.equal(card.status, 'approved');
+  assert.equal(card.approvedBy, 'human');
+  assert.equal(card.approvedAt, '2026-11-21T00:00:00Z');
+
+  const { readEvents } = await import('../../lib/events.mjs');
+  const evt = readEvents(home, { types: ['status.changed'] }).find((e) => e.taskId === id && e.to === 'approved');
+  assert.equal(evt.actor, 'human');
+  assert.ok(!('approvedBy' in evt) && !('approvedAt' in evt), '事件语义不变（补丁不入事件）');
+});

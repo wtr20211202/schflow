@@ -14,14 +14,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// 九程序 decide：人工裁决面（judge③「转人」承诺的人侧闭环）——blocked/stale/rejected 三态的人侧出口。
-// 语义：分诊转人后，「人」的可脚本化裁决入口——回炉（→approved，重走 dispatch 评估器全链守卫，
-// 不绕审批闸）/ 关闭（→rejected）/ 收官（→stale）。转移必经 store.transition() 唯一出口
+// 九程序 decide：人工裁决面（judge③「转人」承诺的人侧闭环）——pending 批准闸与 blocked/stale/rejected 三态的人侧出口。
+// 语义：待批准提案与分诊转人任务，「人」的可脚本化裁决入口——批准（pending→approved，author=model 的卡
+// 自动盖 approvedBy: human + approvedAt，批准留痕随同一次原子写落卡）/ 回炉（→approved，重走 dispatch
+// 评估器全链守卫，不绕审批闸）/ 关闭（→rejected）/ 收官（→stale）。转移必经 store.transition() 唯一出口
 // （actor=human，status.changed 事件自动落，--note 经 extra 随事件留痕可审计）；
 // 目标态不在转移表=76 拒绝并列出该状态合法去向（TRANSITIONS 正典，程序不私设转移面）。
 // 与 fold/merge 同一原子面（HOME 写锁）；退出码沿用八程序约定（0/2/75/76/1）。
 
 // 用法：decide.mjs [--home <dir>] [--json] --task <id> --to <approved|rejected|stale> [--note <一句话裁决理由>]
+//   pending → approved|rejected|stale（pending→approved = 批准；model 代笔卡自动盖 approvedBy/approvedAt）
 
 import { parseArgs } from 'node:util';
 import { resolveHome, paths } from '../lib/home.mjs';
@@ -53,8 +55,16 @@ try {
     const targets = (TRANSITIONS[card.status] || []).join(' | ') || '（无）';
     die(EXIT.REJECT, { text: `decide: ${card.status} → ${values.to} 不在转移表（task ${values.task}）——合法去向: ${targets}` });
   }
-  // 状态翻转唯一出口：transition 自动落 status.changed（actor=human；note 缺省时不带该字段）
-  result = transition(home, values.task, values.to, { actor: 'human', extra: values.note ? { note: values.note } : undefined });
+  // 状态翻转唯一出口：transition 自动落 status.changed（actor=human；note 缺省时不带该字段）。
+  // pending→approved = 批准：批准痕迹与状态同一次原子写落卡（事件语义不变）。
+  const patch = card.status === 'pending' && values.to === 'approved'
+    ? { approvedBy: 'human', approvedAt: new Date().toISOString() }
+    : undefined;
+  result = transition(home, values.task, values.to, {
+    actor: 'human',
+    extra: values.note ? { note: values.note } : undefined,
+    patch,
+  });
 } finally {
   lock.release();
 }

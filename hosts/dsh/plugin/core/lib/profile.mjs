@@ -21,7 +21,7 @@ import { paths } from './home.mjs';
 import { readYamlIfExists } from './yamlfile.mjs';
 import { defaultBranch } from './gitutil.mjs';
 
-const PROFILE_KEYS = new Set(['schemaVersion', 'repo', 'default-base', 'concurrency', 'runner', 'runner-cmd', 'executor', 'model-pool', 'mounts', 'verify', 'ref']);
+const PROFILE_KEYS = new Set(['schemaVersion', 'repo', 'default-base', 'concurrency', 'phase-group', 'runner', 'runner-cmd', 'executor', 'model-pool', 'mounts', 'verify', 'ref']);
 
 export function loadProfile(home, projectName) {
   if (!projectName) return null;

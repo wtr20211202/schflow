@@ -92,8 +92,11 @@ export function createTask(home, card, proposalMd = '') {
   return dir;
 }
 
-/** 状态翻转唯一出口：守卫转移表 → 落卡 → status.changed 事件。非法跳转抛错。 */
-export function transition(home, id, to, { actor = 'engine', extra = {} } = {}) {
+/** 状态翻转唯一出口：守卫转移表 → 落卡 → status.changed 事件。非法跳转抛错。
+ *  patch（可选）：随状态翻转一起写入的字段补丁——与 status 同一次原子写落卡（decide 批准留痕），
+ *  事件语义不变（status.changed 仍只记 from/to/actor/extra）。
+ */
+export function transition(home, id, to, { actor = 'engine', extra = {}, patch } = {}) {
   const dir = findTaskDir(home, id);
   if (!dir) throw new Error(`transition: task ${id} not found`);
   const card = loadCard(dir);
@@ -101,6 +104,7 @@ export function transition(home, id, to, { actor = 'engine', extra = {} } = {}) 
   if (from === to) return { dir, card, from, to }; // 幂等
   if (!canTransition(from, to)) throw new Error(`transition: ${from} → ${to} 不在转移表（task ${id}）`);
   card.status = to;
+  if (patch) Object.assign(card, patch);
   saveCard(dir, card);
   appendEvent(home, { type: 'status.changed', actor, taskId: id, from, to, ...extra });
   return { dir, card, from, to };

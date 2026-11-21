@@ -92,6 +92,7 @@ try {
         // 契约底线④：解析失败=interrupted 重派（附前次产物引用由 dispatch 负责）；
         // 违规明细落 runs/<n>/violations.json——重派任务书渲染，执行器自纠有明确靶子
         atomicWriteJson(path.join(runDir, 'violations.json'), { runNo: entry.runNo, violations, at: new Date().toISOString() });
+        markResumeFailed(runDir);
         releaseAllForTask(home, entry.taskId, { reason: 'fold' });
         transition(home, card.id, 'approved');
         appendEvent(home, { type: 'folded', actor: 'engine', taskId: card.id, runNo: entry.runNo, outcome: 'interrupted', reason: violations.join(';').slice(0, 300) });
@@ -144,6 +145,7 @@ try {
         continue;
       }
       releaseAllForTask(home, entry.taskId, { reason: forced ? 'forced' : 'native-timeout' });
+      markResumeFailed(runDir);
       transition(home, card.id, 'approved');
       appendEvent(home, { type: 'folded', actor: 'engine', taskId: card.id, runNo: entry.runNo, outcome: 'interrupted', reason: forced ? 'forced' : 'native-timeout' });
       outcomes.push({ id: card.id, outcome: 'interrupted', reason: forced ? 'forced' : 'native-timeout' });
@@ -155,6 +157,7 @@ try {
     }
     // pid 死且无 result = interrupted（保留 worktree——WIP 保全，决策 18）
     releaseAllForTask(home, entry.taskId, { reason: 'fold' });
+    markResumeFailed(runDir);
     transition(home, card.id, 'approved');
     appendEvent(home, { type: 'folded', actor: 'engine', taskId: card.id, runNo: entry.runNo, outcome: 'interrupted', reason: 'executor-died' });
     outcomes.push({ id: card.id, outcome: 'interrupted', reason: 'executor-died' });
@@ -171,3 +174,15 @@ emit({
     ? `fold: ${outcomes.length} 项——\n${outcomes.map((o) => `  - ${o.id} ${o.outcome}${o.reason ? `（${o.reason}）` : ''}`).join('\n')}`
     : 'fold: 无在途可折叠'),
 });
+
+/** phase-group 回落信号：该 run 是「续跑上一会话」的派发（session.json resumed=true）却折成 interrupted
+ *  → 记 resumeFailed:true，下轮 dispatch 检测到就放弃续跑、静默回落全新会话（护栏见 dispatch resolveSession）。
+ *  账本缺失/损坏=无可续会话，静默跳过（续不上不阻断折叠）。 */
+function markResumeFailed(runDir) {
+  const f = path.join(runDir, 'session.json');
+  try {
+    if (!fs.existsSync(f)) return;
+    const s = JSON.parse(fs.readFileSync(f, 'utf8'));
+    if (s && s.resumed === true && s.resumeFailed !== true) atomicWriteJson(f, { ...s, resumeFailed: true });
+  } catch { /* 会话账本不可解析：按无会话回落 */ }
+}

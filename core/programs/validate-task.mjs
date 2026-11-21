@@ -15,6 +15,7 @@
 // limitations under the License.
 
 // 八程序④ validate-task：intake 格式门禁（task-card spec 全规则，含 highest/exclusive-human 机械拒绝）。
+// author=model 的卡另过评审闸：proposal.md 必须落一行「评审：」（四问自审结论）——缺失=review-missing。
 // 违规 exit 76 + 清单（exit 1 保留给「任务不存在」）。
 import { parseArgs } from 'node:util';
 import fs from 'node:fs';
@@ -46,6 +47,12 @@ if (!fs.existsSync(path.join(dir, 'task.yaml'))) {
 
 const card = loadCard(dir);
 const violations = validateTaskCard(card, { directions });
+// 评审闸（author=model 专属）：proposal.md 里必须有一行以「评审：」起头——提交者自审结论的机读锚。
+if (card.source?.author === 'model') {
+  const proposalFile = path.join(dir, 'proposal.md');
+  const proposal = fs.existsSync(proposalFile) ? fs.readFileSync(proposalFile, 'utf8') : '';
+  if (!/^评审[：:]/m.test(proposal)) violations.push('review-missing: proposal.md 无「评审：」行（author=model 必过冷眼自审）');
+}
 if (violations.length) {
   die(EXIT.REJECT, {
     json: values.json ? { ok: false, id: card.id, violations } : null,

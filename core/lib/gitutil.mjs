@@ -85,14 +85,24 @@ export function worktreeList(repoDir) {
   return list;
 }
 
-/** 建/占 worktree：已存在=复用（WIP 保全，决策 18）；分支存在=挂到工作树；否则从 base 新建。
+/** 建/占 worktree：已存在=复用（WIP 保全，决策 18）——复用前校验检出分支 == 期望分支：
+ *  手动切分支/多 HOME 撞 id 会让提交落到别处，合并侧 already-ancestor 恢复再把它当「已合」静默归档。
+ *  分支存在=挂到工作树；否则从 base 新建。
  *  残局自愈（CI 干净环境暴露）：目录在而注册不在（rm 半途）→ 清目录再建；注册在而目录不在
- *  （missing but registered）→ prune 注册再建；add 仍拒 → add -f 覆盖。 */
+ *  （missing but registered）→ prune 注册再建。
+ *  -f 收紧：既有分支挂接形态重试一次仍失败即抛错（附 git stderr 摘要）——-f 会让同一分支被两个
+ *  工作树检出（双 checkout）；仅新建分支（-b）形态最后一次允许 -f（只影响本任务新分支）。 */
 export function ensureWorktree(repoDir, wpath, branch, base) {
-  if (worktreeList(repoDir).some((w) => path.resolve(w.path) === path.resolve(wpath))) {
+  const entry = worktreeList(repoDir).find((w) => path.resolve(w.path) === path.resolve(wpath));
+  if (entry) {
+    if (entry.branch !== branch) {
+      const actual = entry.detached ? 'detached' : (entry.branch ?? '(未知)');
+      throw new Error(`worktree-branch-mismatch: 期望 ${branch}，实际 ${actual}（${wpath}）`);
+    }
     return { path: wpath, reused: true };
   }
-  const addArgs = git(repoDir, ['rev-parse', '--verify', `refs/heads/${branch}`], { allowFail: true }).ok
+  const existingBranch = git(repoDir, ['rev-parse', '--verify', `refs/heads/${branch}`], { allowFail: true }).ok;
+  const addArgs = existingBranch
     ? ['worktree', 'add', wpath, branch]
     : ['worktree', 'add', '-b', branch, wpath, base];
   let r = git(repoDir, addArgs, { allowFail: true });
@@ -100,7 +110,12 @@ export function ensureWorktree(repoDir, wpath, branch, base) {
     if (fsSyncExists(wpath)) fsRmSync(wpath);
     else git(repoDir, ['worktree', 'prune'], { allowFail: true });
     r = git(repoDir, addArgs, { allowFail: true });
-    if (!r.ok) git(repoDir, [...addArgs.slice(0, 2), '-f', ...addArgs.slice(2)], { allowFail: false });
+    if (!r.ok && !existingBranch) {
+      r = git(repoDir, [...addArgs.slice(0, 2), '-f', ...addArgs.slice(2)], { allowFail: true });
+    }
+    if (!r.ok) {
+      throw new Error(`worktree-add-failed: ${branch} @ ${wpath}（${(r.stderr || '').trim().slice(0, 300)}）`);
+    }
   }
   return { path: wpath, reused: false };
 }

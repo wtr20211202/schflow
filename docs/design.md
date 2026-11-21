@@ -1,4 +1,4 @@
-# PIPELINE-V2-DESIGN · schflow 通用提案任务流水线设计 v1.0.33
+# PIPELINE-V2-DESIGN · schflow 通用提案任务流水线设计 v1.0.34
 
 > **本文件即正典**（schflow 仓库 `docs/design.md`；开发历史见仓库 git log——开发期使用私有开发仓（自托管 Git 服务），v1.0.19 起公开仓 github.com/wtr20211202/schflow）。先行流水线（另一私有项目）的本地设计工作副本指针指回本文件，发布仓库不含该副本。
 
@@ -34,6 +34,7 @@
 > 2026-11-17 v1.0.10：**用户需求审计第三批**——不可再精简清单五项扩七项（⑥ git 轨道任务必在独立 worktree〔版本隔离〕、⑦ 满并行纪律+可调并发〔ADR-0011 点名——池大小是配置、并行是纪律〕）；**§8 增「环境池与资源租约」核心可选模块**——合并队列串行化分支、环境池串行化环境（同族骨架职责）：用户只管 envs.yaml 池子增减（exclusive/shared/labels/setup/teardown/protected），引擎只做三件事（派发前租约+占用钩子+租约事件）；task-card 增 env 字段、events 增 env.leased/released、dispatch 程序增租约步骤；ADR-0009/0019 收敛为池的内置特例、真实使用实例 protected 永不入池；扩展点凑合版的缺陷（先派后撞/无排队/无审计）留档为不采信理由。
 > 2026-11-17 v1.0.11：**第七轮冷眼评审（判「修订后收敛」：零 P0、8 P1、11 P2）全数采纳**——租约载体与生命周期补齐（HOME 状态文件+事件重放重建；fold 联动释放+兜底 TTL 2h；两种绑定的释放点；setup 失败语义；shared 仅 0→1/N→0 跳变执行钩子；标签多命中最少占用优先；protected 永不匹配——业界 lease 三件套对齐）；**合并队列键修正为 (repo,base) 复合键**；base 解析序补全（task.base→项目 default-base→repo HEAD——免注册任务缺省有源）；improve 入 source/actor 双枚举（trust=semi）；improve 落点口径统一（用户层定制资产，delegate 除外）；升级协议三层表补全（projects/envs.yaml/knowledge 归用户层，Profile/envs 带 schemaVersion 入 migrate/doctor）；**引用面响亮失败扩五类**（override 锚点/prompt-overrides/phases 模板/mounts pin/kind 谓词——业界「上游改名断裂」坑正面对应）；dispatch 排队闭环（可派含已获租约、等租约跳过不饿死、env-wait 入报告）；事件版本策略（新增 type 前向兼容不升版）；task-card 增 parent 字段；「例外=确定性核心」措辞放宽；transcript 默认永久分卷；分支命名 schflow/&lt;id&gt;；ADR-0009/0019 映射回填。
 > 2026-11-17 v1.0.12：**环境供给源解锁定（用户定向：不定死环境池的提供方式）**——env-provider 升为第八扩展点：`static`（yaml 直列）/ `command`（外部命令动态供给清单——查宿主产品 API、解析参考文件、问 CMDB/K8s 皆是一个脚本实例）；**抽象边界：引擎只消费租约协议四字段（name/acquire/labels/setup+teardown），其余字段一概不透明**（IP/账号句柄/参考文件路径由 setup/teardown 与任务书自行消费，凭据与环境细节永不进引擎——零凭据纪律延伸至环境层）。
+> 2026-11-21 v1.0.34：**本批实现落档（2026-11-20/21，五件事）**——① **工作树/合并安全加固**（P-20261121-1）：`ensureWorktree` 复用已注册工作树前校验检出分支==期望分支（不符含 detached 即抛 `worktree-branch-mismatch`，dispatch 以专用原因码暂缓候选，非笼统 `worktree-failed`）；`-f` 兜底收紧（既有分支挂接形态清理 + prune 重试一次仍失败即响亮抛错，**不用 `-f`**——杜绝同分支双 checkout；仅新建分支形态最后一次允许）；merge 在已合/祖先判定前校验执行器回报的 `result.commit` 落在任务分支（是分支祖先 **或** 分支历史含 `(<id>)` 尾注，与幂等重入同一锚约定），两者皆否 → `merge.failed: commit-not-on-branch` + blocked + 停本队列（数据可疑，不静默归档）。② **统一提案生产线**：task-card 增 `source.author`（`human`|`model`，缺省 human——旧卡零变化），model 代笔卡入库过评审闸（proposal.md `^评审[：:]` 行）、批准留痕 `approvedBy: human` + `approvedAt`（`approval-missing` fail-closed）；`decide` 补 pending→approved 批准闸（盖章与状态翻转同一次原子写）；README 双语快速上手同步（人自撰=创建即批准，模型代笔=pending 待 decide）。③ **并发缺省 4**（Profile `concurrency` / `--concurrency` 覆盖，满并行纪律不变）。④ **`phase-group` 会话折叠**（仅 subprocess 家族 claude/dsh，缺省 false）：dsh 恒传确定性 `--session-id schflow-<taskId>`（不存在即新建=天然回落）；claude 从上一 run `transcript.out` 提取 `session_id` 后 `--resume`，每次派发落 `runs/<n>/session.json`，fold 折 interrupted 且上轮 resumed=true 记 `resumeFailed` 放弃续跑。⑤ **锁文件版本一致性**：`scripts/bump-version.sh` 除四处清单外同步 `package-lock.json` 根版本两处（version / packages[""].version），版本守卫测试覆盖锁文件。129 项测试全绿。
 > 2026-11-19 v1.0.33：**三件并行收口（dogfood 第七轮，用户定向批准）**——① **P-2 decide 程序（第九程序，judge③ 人侧闭环）**：`decide --task <id> --to <approved|rejected|stale> [--note]`——blocked/stale/rejected 三态的人工裁决出口（此前连 dogfood 都 node -e 直调 store 库）；守卫链=存在→canTransition 白名单（76 列合法去向）→transition(actor=human) 单事件面（执行器抓出任务书双落偏差：store.transition 本身即唯一出口自动落 status.changed，手动 appendEvent 会重复——dedup 为正例）；triage hint 融入命令名+task-card spec 转移表登记+5 例集成测（**通知面三分**：状态面永在 board/status 带 triage+hint／编排器受阻即通知〔宿主能力择用〕／headless 退化轮询——通知是宿主层职责，decide 只管人到场后）。② **P-3 新用户指南**（README 双语两节 ≤40 行）：接入项目（projects 注册最小样例——执行器按 docs-follow-code 修正提案陈旧路径为 `projects/<name>/schflow.yaml` 真形态）+ Extending（轻骨架哲学句：模型强少加约束/模型弱挂第三方 skill 包〔~/.schflow/skills、官方插件体系、mounts〕两种都合法；五层插槽浓缩表指路 §7；**强模型裁剪纪律** promptOverrides——安全底线契约/fail-closed/红线不可裁）。③ **P-4 audit 问题分流**（v0.1.1）：环境类用户自解／纪律缺口类 promptOverrides 自救→上游缺陷贡献通道／本体缺陷类 issue/PR 或 dogfood 立项。84 项测试全绿。
 > 2026-11-19 v1.0.32：**口述型机制排查 + audit 技能落地（用户定向「做成都能自助触发的技能，同款排查」）**——排查五项：① J1/J2/J3 审计轮（评分表在 golden/ 但现场准备/诱导构造/打分流程全在会话口述）→ **audit 技能落地**（skills/audit v0.1.0 随包最小模板第五件：J2 三步〔备现场 approved+running→装载 orchestrator 跑 tick→按 judge-j2.md 五项打分附 seq 证据〕+ J3 两诱导场景〔stale=派发前主线破坏前提、dirty=worktree 预置他人改动，动主线/worktree 须用户知情确认〕+三常规核对；产出 $SCHFLOW_HOME/golden/records/；只出报告不做实施；advisory 不进硬门；镜像守卫数组+双镜像+plugin.json+双语 README 同步，79 项测试）；② **人工裁决面缺口**（blocked→approved/rejected/stale 连 dogfood 都靠 node -e 直调 store 库——「转人」承诺的人侧无工具面）→ P-20261119-2 `decide` 程序提案 pending 待批；③ onboarding 缺口（README 只讲用不讲接入）→ P-20261119-3 提案 pending 待批；④ patrol 无 skill 本体 → 等流量；⑤ 金场景回灌/升级回归 → 文档已覆盖。技能面现为 3+2+1（proposer/orchestrator/executor + improve/patrol〔语义在 directions〕+ audit）。
 > 2026-11-19 v1.0.31：**吸收条目过拟合审计二连清（用户定向「查同类尾巴」）**——逐条重审 v1.0.28/29 吸收面，再抓两条：① 结构自查四问点名 schflow 机制词（扩展点/Profile/技能挂载）→ 通用化为「项目既有扩展点/插件/挂载机制」；② 调用点补测钉死本仓布局（core/lib/）→ 通用化为「仓内被多处导入的公共代码」。其余条目审计干净（实证诊断的「环境/租约」=任务书声明面、视觉门禁按改动面触发、受阻通知条件式——均不点特定机制）。executor SKILL v0.1.4，双镜像字节同步，79 项测试。审计方法沉淀：**吸收时逐条问「这条纪律在无 schflow 上下文的用户项目上还成立吗」**——机制词要么通用化、要么写成条件式（机制存在才适用），v1.0.30/31 两轮同法。
@@ -277,14 +278,14 @@ tick 本身零模型成本，只有真判断工作才发起有界的 agent 调�
 |---|---|---|
 | `industry` | 主提案员（对照业界主流，新功能/优化） | 17 视角池、每轮必产 1~3 条 |
 | `polish` | 打磨巡查（现有功能打磨） | 聚焦已做功能的走查，默认高优先级，patrol 模式 |
-| `human` | 「真实使用」特权档 | 最高优先级+添加即批准，**仅人可用**（direction 里声明 exclusive-human，generator 载入即拒用） |
+| `human` | 「真实使用」特权档 | 最高优先级；批准态按作者细分（`source.author`）：人自己撰写=添加即批准（快车道）；会话代笔（`source.author=model`）=pending + 评审行 + `decide` 批准。**仅人可用**（direction 里声明 exclusive-human，generator 载入即拒用） |
 
 加新方向 = 加一个 `directions/<name>.yaml`（可选附提示词补充节），**不动 skill 本体**——方向是数据不是代码。
 
 | 来源 | 形态 | 特权 |
 |---|---|---|
 | generator | 定时提案员（视角池轮换、每轮必产出 N 条——现提案员纪律；**方案产生可挂不同 skill/框架**，见 §5） | 无 |
-| human | CLI `add` / 会话代加 / 直接编辑文件后 `reconcile` | 可用「最高（真实使用）」档、添加即 [已批准] |
+| human | CLI `add` / 会话代加 / 直接编辑文件后 `reconcile` | 可用「最高（真实使用）」档；批准态按 `source.author` 细分：人自己撰写=添加即 [已批准]（快车道）；会话代笔（`model`）=pending + `评审：` 行，`decide` 批准后自动盖 `approvedBy: human` + `approvedAt`（手工直改 approved 无批准痕 → `approval-missing` fail-closed） |
 | patrol | 打磨巡查（实机走查转提案，只提不实施——借 executor 实机操作骨架，产出走提案通道） | 默认高优先级 |
 | harvest | 缺口收割（提交信息「假设：/强发/遗留/顺带修复」四类标记回收 + **investigate 任务的 RCA 转提案**，§6.3） | 无 |
 | improve | 自进化提案（复盘自有使用数据，产出对用户层定制资产的修改——§3 自进化机制） | 无（trust=semi） |

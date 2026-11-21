@@ -41,6 +41,16 @@ version: 0.1.2
 
 一切判断点共用输出纪律：**结论=一行结构化断言 + 依据引用（任务 id / 文件路径 / 事件 seq）**；解析不了自己该读的状态（锁怪/索引坏/事件断）→ 挂起等人并说明缺什么，绝不猜着推进。
 
+## 提案代笔（用户一句话 → 可批准的任务卡）
+
+用户只给一句话、要你代为立项时（会话内直办，不是 tick 步骤）：
+
+1. 按提案员契约（[skills/proposer/SKILL.md](../proposer/SKILL.md)）扩写 proposal.md 五件套：动机 / 方案 / 价值 / 规模 / 风险；
+2. 按同一契约做四问冷眼自审（真值得做吗 / 方案更简吗 / 与存量重复吗 / 规模与价值匹配吗），结论一行落 proposal.md：`评审：通过 + 理由`；
+3. proposal.md 末尾落 `## 原始诉求（human）`，**逐字保留用户原话**（不改写不省略——人批准的是意图与原话）；
+4. task.yaml 写 `source.author: model` + `status: pending`——**模型代笔的卡禁止创建即 approved**；
+5. 向用户要一次明确批准（呈现方案摘要与 `评审：` 行）；批准后 `decide --task <id> --to approved`（自动盖 `approvedBy: human` + `approvedAt`），批准前不得派发。
+
 ## 执行器家族自检（每次派发前，零成本自观察）
 
 你有 subagent/Agent/Task 类工具吗？

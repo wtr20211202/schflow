@@ -11,13 +11,13 @@ version: 0.1.0
 ## 产物契约（不可协商）
 
 1. **提案五件套**（`proposal.md`，人读正稿）：动机（为什么现在做）/ 方案（做什么、怎么做的技术叙述）/ 价值（谁受益、量化或可指认）/ 规模（S/M/L 粗估+改动面）/ 风险（含不做的前提假设）。写不出某一节=提案不成熟，不提交。
-2. **任务卡**（`task.yaml`，机读，字段表=docs/spec/task-card.md）：id 用 `next-id` 程序取号；kind 按任务性质选六类之一（code/fix/investigate/docs/research/chore——排查调研不是 code）；`source.direction` 填你的方向名、`source.trust` 由来源类型决定（generator/patrol/improve=semi，human/harvest=trusted，webhook=untrusted——**必须与 type 匹配，校验器拒绝错配**）。
+2. **任务卡**（`task.yaml`，机读，字段表=docs/spec/task-card.md）：id 用 `next-id` 程序取号；kind 按任务性质选六类之一（code/fix/investigate/docs/research/chore——排查调研不是 code）；`source.direction` 填你的方向名、`source.trust` 由来源类型决定（generator/patrol/improve=semi，human/harvest=trusted，webhook=untrusted——**必须与 type 匹配，校验器拒绝错配**）；**`source.author: model` 明示草案由模型代笔**（触发源 type 仍按实际来源填——trust 属于来源，review 属于内容）。
 3. **入库顺序固定**：`next-id` 取号 → `dup-check` 查重（标题+锚点双通道，命中即弃或改题，不做「换个说法再提」）→ `validate-task` 过格式门禁（exit 76=改到过为止，不要绕）→ 写任务目录与 `task.created` 事件。M0 起这些步骤收拢为 `schflow add`，顺序不变。
 4. **每轮产出纪律来自 direction 文件**（视角池/聚焦域/每轮条数配额/优先级档位上限），direction 是数据不是剧本——照它的参数执行，不要发明它没写的纪律。
 
 ## 内嵌评审闸（决策 21：同轮完成，不独立成技能）
 
-提交前对每条提案做一次冷眼自审：换位成「要为它掏执行成本的编排器与维护者」，逐问——真值得做吗（不做的代价可指认吗）/ 方案站得住吗（有没有更简单的等价做法）/ 与存量提案重复吗 / 规模与价值匹配吗。任一问不过 → 弃，**不提交自认勉强通过的提案**。评审结论一句话附在 proposal.md 末尾（`评审：通过/弃稿 + 理由`）。弃稿不落任何文件。
+提交前对每条提案做一次冷眼自审：换位成「要为它掏执行成本的编排器与维护者」，逐问——真值得做吗（不做的代价可指认吗）/ 方案站得住吗（有没有更简单的等价做法）/ 与存量提案重复吗 / 规模与价值匹配吗。任一问不过 → 弃，**不提交自认勉强通过的提案**。评审结论一句话附在 proposal.md 末尾（`评审：通过/弃稿 + 理由`）。弃稿不落任何文件。**`评审：` 行不落不放行**——`author: model` 的卡 validate-task 会机械检查 proposal.md 是否有一行 `^评审[：:]`，缺失即 exit 76（review-missing）。
 
 ## 原子能力
 
