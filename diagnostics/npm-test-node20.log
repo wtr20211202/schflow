@@ -1,0 +1,739 @@
+
+> schflow@0.1.13 test
+> node core/test/run-all.mjs
+
+TAP version 13
+# Subtest: custom runner argv 数组：零 shell 启动 + 四态收编
+ok 1 - custom runner argv 数组：零 shell 启动 + 四态收编
+  ---
+  duration_ms: 386.502291
+  ...
+# Subtest: 默认并发=4：Profile 未写 concurrency，5 个 approved 派 4 个、deferred 含 slots-full
+ok 2 - 默认并发=4：Profile 未写 concurrency，5 个 approved 派 4 个、deferred 含 slots-full
+  ---
+  duration_ms: 270.081875
+  ...
+# Subtest: decide blocked→approved 回炉：真转移 + 事件 actor=human + note 落事件 + --json 形态
+ok 3 - decide blocked→approved 回炉：真转移 + 事件 actor=human + note 落事件 + --json 形态
+  ---
+  duration_ms: 204.723583
+  ...
+# Subtest: decide blocked→rejected 关闭：卡面终态 + 人读形态同源
+ok 4 - decide blocked→rejected 关闭：卡面终态 + 人读形态同源
+  ---
+  duration_ms: 124.252958
+  ...
+# Subtest: decide 非法转移 done→approved：exit 76 且 stderr 列合法去向
+ok 5 - decide 非法转移 done→approved：exit 76 且 stderr 列合法去向
+  ---
+  duration_ms: 84.265834
+  ...
+# Subtest: decide 任务不存在：exit 非 0（FAIL=1）
+ok 6 - decide 任务不存在：exit 非 0（FAIL=1）
+  ---
+  duration_ms: 100.916042
+  ...
+# Subtest: decide 无 note：事件无 note 字段；缺参守卫=MISSING(2)+用法文本
+ok 7 - decide 无 note：事件无 note 字段；缺参守卫=MISSING(2)+用法文本
+  ---
+  duration_ms: 290.169792
+  ...
+# Subtest: decide pending→approved：model 代笔卡盖 approvedBy/approvedAt + 事件 actor=human
+ok 8 - decide pending→approved：model 代笔卡盖 approvedBy/approvedAt + 事件 actor=human
+  ---
+  duration_ms: 378.532
+  ...
+# Subtest: decide pending→rejected：不盖批准痕迹
+ok 9 - decide pending→rejected：不盖批准痕迹
+  ---
+  duration_ms: 160.510584
+  ...
+# Subtest: transition patch：字段与状态同一次落卡，事件只记 from/to（decide 之外的补丁语义）
+ok 10 - transition patch：字段与状态同一次落卡，事件只记 from/to（decide 之外的补丁语义）
+  ---
+  duration_ms: 9.542708
+  ...
+# Subtest: env 租约：串行化环境、跳过不饿死、释放后再取
+ok 11 - env 租约：串行化环境、跳过不饿死、释放后再取
+  ---
+  duration_ms: 2894.219041
+  ...
+# Subtest: blocked / interrupted：四态折叠 + 重派附前次引用
+not ok 12 - blocked / interrupted：四态折叠 + 重派附前次引用
+  ---
+  duration_ms: 885.602708
+  location: '/Users/runner/work/schflow/schflow/core/test/integration/failure-paths.integration.test.mjs:43:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    program dispatch exit 1
+    stdout: dispatch: 本轮无派发
+    暂缓 1（原因必报）——
+      - P-20261117-2 worktree-failed（worktree-add-failed: schflow/P-20261117-2 @ /var/folders/9d/l02zfgrs7c16twd3wbpdmhkc0000gn/T/schflow-g2a-SICI6z/.schflow-worktrees/toyrepo/P-20261117-2（Preparing worktree (checking out 'schflow/P-2026）
+    
+    stderr: 
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    run (file:///Users/runner/work/schflow/schflow/core/test/helpers.mjs:68:11)
+    TestContext.<anonymous> (file:///Users/runner/work/schflow/schflow/core/test/integration/failure-paths.integration.test.mjs:60:3)
+    async Test.run (node:internal/test_runner/test:797:9)
+    async Test.processPendingSubtests (node:internal/test_runner/test:526:7)
+  ...
+# Subtest: ejected：复验失败回炉受阻、队列继续下一支（P9）
+ok 13 - ejected：复验失败回炉受阻、队列继续下一支（P9）
+  ---
+  duration_ms: 2809.854625
+  ...
+# Subtest: secret-scan：出口扫描命中 → 挂起人工、队列停止（P10）
+ok 14 - secret-scan：出口扫描命中 → 挂起人工、队列停止（P10）
+  ---
+  duration_ms: 1028.969667
+  ...
+# Subtest: N1 机械可修形态代收：host-assist 事件 + done 收编 + 审计双档（原件未动）
+ok 15 - N1 机械可修形态代收：host-assist 事件 + done 收编 + 审计双档（原件未动）
+  ---
+  duration_ms: 460.209916
+  ...
+# Subtest: N2 修不动回炉贯通：violations.json 落盘 + 新任务书含违规明细与字段名
+ok 16 - N2 修不动回炉贯通：violations.json 落盘 + 新任务书含违规明细与字段名
+  ---
+  duration_ms: 308.218334
+  ...
+# Subtest: 全链：两任务同 base 并行执行、串行合并、FIFO 顺序成立
+ok 17 - 全链：两任务同 base 并行执行、串行合并、FIFO 顺序成立
+  ---
+  duration_ms: 1412.629917
+  ...
+# Subtest: intake：取号→建件→门禁→索引 全链性质
+ok 18 - intake：取号→建件→门禁→索引 全链性质
+  ---
+  duration_ms: 804.747708
+  ...
+# Subtest: validate-task：highest 非 human 机械拒绝（exit 76）
+ok 19 - validate-task：highest 非 human 机械拒绝（exit 76）
+  ---
+  duration_ms: 94.564208
+  ...
+# Subtest: validate-task：author=model 无「评审：」行 → 76（review-missing）；有则通过；旧卡不走评审闸
+ok 20 - validate-task：author=model 无「评审：」行 → 76（review-missing）；有则通过；旧卡不走评审闸
+  ---
+  duration_ms: 278.957459
+  ...
+# Subtest: status fail-closed：model 卡手工置 approved 且无 approvedBy → exit 76（approval-missing）
+ok 21 - status fail-closed：model 卡手工置 approved 且无 approvedBy → exit 76（approval-missing）
+  ---
+  duration_ms: 101.1695
+  ...
+# Subtest: P14 推送失败（非快进）：停队列、分支保留、任务待合；对齐远端后重跑恢复
+ok 22 - P14 推送失败（非快进）：停队列、分支保留、任务待合；对齐远端后重跑恢复
+  ---
+  duration_ms: 1717.806
+  ...
+# Subtest: P15 原生家族条目在二次派发后仍存活（pid=null 合法）
+ok 23 - P15 原生家族条目在二次派发后仍存活（pid=null 合法）
+  ---
+  duration_ms: 281.851625
+  ...
+# Subtest: P16 事件尾行损坏：append 回溯上一条完整行（seq 不归零）；全卷不可解析=响亮失败
+ok 24 - P16 事件尾行损坏：append 回溯上一条完整行（seq 不归零）；全卷不可解析=响亮失败
+  ---
+  duration_ms: 10.096625
+  ...
+# Subtest: P22 受阻分诊：折叠事件带分诊结论（配额→env-retry）
+ok 25 - P22 受阻分诊：折叠事件带分诊结论（配额→env-retry）
+  ---
+  duration_ms: 276.163084
+  ...
+# Subtest: P23 harvest 闭环：RCA 报告转生块 → fix 提案入库（血缘+幂等）
+ok 26 - P23 harvest 闭环：RCA 报告转生块 → fix 提案入库（血缘+幂等）
+  ---
+  duration_ms: 419.351333
+  ...
+# Subtest: P23b harvest --all：归档源可见 + 幂等锚覆盖归档（源归档后重跑不重发）
+ok 27 - P23b harvest --all：归档源可见 + 幂等锚覆盖归档（源归档后重跑不重发）
+  ---
+  duration_ms: 179.202083
+  ...
+# Subtest: P23c harvest 无块不转生：报告无显式 spawn 块 → spawned 0（fail-soft，程序不猜自由文本）
+ok 28 - P23c harvest 无块不转生：报告无显式 spawn 块 → spawned 0（fail-soft，程序不猜自由文本）
+  ---
+  duration_ms: 88.188458
+  ...
+# Subtest: P24 dispatch --retry：env-retry 原子重派闭环（回炉+派发一体）+ 三拒绝面
+ok 29 - P24 dispatch --retry：env-retry 原子重派闭环（回炉+派发一体）+ 三拒绝面
+  ---
+  duration_ms: 513.43475
+  ...
+# Subtest: P25 dispatch --plan：只读预演（可派+依赖未解除+租约无匹配）+ pool/事件流/任务卡三面零变更
+ok 30 - P25 dispatch --plan：只读预演（可派+依赖未解除+租约无匹配）+ pool/事件流/任务卡三面零变更
+  ---
+  duration_ms: 366.397625
+  ...
+# Subtest: P26 dispatch --plan 依赖判定归档面回退：归档 done=可派 / open pending=deps-pending / 不存在=deps-unknown / 回退纯读零变更
+ok 31 - P26 dispatch --plan 依赖判定归档面回退：归档 done=可派 / open pending=deps-pending / 不存在=deps-unknown / 回退纯读零变更
+  ---
+  duration_ms: 115.060166
+  ...
+# Subtest: kill -9 演练：执行器被杀 → interrupted 折叠+WIP 保全 → 重派 runs/2 引用 runs/1 → seq 不归零
+not ok 32 - kill -9 演练：执行器被杀 → interrupted 折叠+WIP 保全 → 重派 runs/2 引用 runs/1 → seq 不归零
+  ---
+  duration_ms: 661.182417
+  location: '/Users/runner/work/schflow/schflow/core/test/integration/kill-drill.integration.test.mjs:32:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    program dispatch exit 1
+    stdout: {
+      "dispatched": [],
+      "deferred": [
+        {
+          "id": "P-20261118-9",
+          "reason": "worktree-failed",
+          "detail": "worktree-add-failed: schflow/P-20261118-9 @ /var/folders/9d/l02zfgrs7c16twd3wbpdmhkc0000gn/T/schflow-kill-rM5hoc/.schflow-worktrees/toyrepo/P-20261118-9（Preparing worktree (checking out 'schflow/P-202"
+        }
+      ],
+      "at": "2026-11-21T10:30:58.259Z",
+      "home": "/var/folders/9d/l02zfgrs7c16twd3wbpdmhkc0000gn/T/schflow-kill-rM5hoc/home"
+    }
+    
+    stderr: 
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    run (file:///Users/runner/work/schflow/schflow/core/test/helpers.mjs:68:11)
+    TestContext.<anonymous> (file:///Users/runner/work/schflow/schflow/core/test/integration/kill-drill.integration.test.mjs:108:16)
+    async Test.run (node:internal/test_runner/test:797:9)
+    async Test.processPendingSubtests (node:internal/test_runner/test:526:7)
+  ...
+# Subtest: A1 L1 纯追加对撞：双侧同文件末尾各追加 → semantic-union 自愈、base 尖含双侧行
+ok 33 - A1 L1 纯追加对撞：双侧同文件末尾各追加 → semantic-union 自愈、base 尖含双侧行
+  ---
+  duration_ms: 1859.6265
+  ...
+# Subtest: A2 L1 双侧改写同段：块级不安全 → 无 judge 照旧 eject（零 LLM 缺省面回归）
+ok 34 - A2 L1 双侧改写同段：块级不安全 → 无 judge 照旧 eject（零 LLM 缺省面回归）
+  ---
+  duration_ms: 1971.456625
+  ...
+# Subtest: A3 L2 adopt-theirs：custom judge（node 夹具）真应用 + merge.resolved 事件
+ok 35 - A3 L2 adopt-theirs：custom judge（node 夹具）真应用 + merge.resolved 事件
+  ---
+  duration_ms: 2021.600375
+  ...
+# Subtest: A4 L2 merge-both：files 内容真应用（分支侧全文+裁决标记行）
+ok 36 - A4 L2 merge-both：files 内容真应用（分支侧全文+裁决标记行）
+  ---
+  duration_ms: 2108.460208
+  ...
+# Subtest: A5 L2 垃圾输出：fail-closed eject + rebase 已 abort、分支仍在、合并工作树无半态
+ok 37 - A5 L2 垃圾输出：fail-closed eject + rebase 已 abort、分支仍在、合并工作树无半态
+  ---
+  duration_ms: 1940.041875
+  ...
+# Subtest: A6 L2 wsl 真机形态：警告字节+草稿 verdict 在前、终答在尾行 → 末个带 verdict 者胜 + 证据落盘（成功路）
+ok 38 - A6 L2 wsl 真机形态：警告字节+草稿 verdict 在前、终答在尾行 → 末个带 verdict 者胜 + 证据落盘（成功路）
+  ---
+  duration_ms: 1644.761166
+  ...
+# Subtest: A7 L2 真实失败形态回归：reasoning 无 verdict 片段在前、终答在尾行 → 解析成功应用
+ok 39 - A7 L2 真实失败形态回归：reasoning 无 verdict 片段在前、终答在尾行 → 解析成功应用
+  ---
+  duration_ms: 1947.107458
+  ...
+# Subtest: A8 L2 全程无合法 verdict：fail-closed eject + 证据落盘（失败路，含结论行 reason）
+ok 40 - A8 L2 全程无合法 verdict：fail-closed eject + 证据落盘（失败路，含结论行 reason）
+  ---
+  duration_ms: 1516.693042
+  ...
+# Subtest: C0 dispatch：任务工作树检出分支不符 → 暂缓 worktree-branch-mismatch（候选受控跳过）
+not ok 41 - C0 dispatch：任务工作树检出分支不符 → 暂缓 worktree-branch-mismatch（候选受控跳过）
+  ---
+  duration_ms: 305.012542
+  location: '/Users/runner/work/schflow/schflow/core/test/integration/merge-commit-attribution.integration.test.mjs:49:1'
+  failureType: 'testCodeFailure'
+  error: '按前缀映射为专用暂缓原因'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'worktree-branch-mismatch'
+  actual: 'worktree-failed'
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///Users/runner/work/schflow/schflow/core/test/integration/merge-commit-attribution.integration.test.mjs:66:10)
+    async Test.run (node:internal/test_runner/test:797:9)
+    async Test.processPendingSubtests (node:internal/test_runner/test:526:7)
+  ...
+# Subtest: C1 merge：提交不在任务分支且无 id 尾注 → commit-not-on-branch + blocked + 停队列
+ok 42 - C1 merge：提交不在任务分支且无 id 尾注 → commit-not-on-branch + blocked + 停队列
+  ---
+  duration_ms: 929.399709
+  ...
+# Subtest: C2 merge：rebase 重试后原提交被重写、尾注仍在 → 正常合入（尾注兜底不误报）
+ok 43 - C2 merge：rebase 重试后原提交被重写、尾注仍在 → 正常合入（尾注兜底不误报）
+  ---
+  duration_ms: 1380.339166
+  ...
+# Subtest: dsh phase-group：run1 恒传 --session-id schflow-<id>；interrupted 记 resumeFailed；run2 resumed=true
+ok 44 - dsh phase-group：run1 恒传 --session-id schflow-<id>；interrupted 记 resumeFailed；run2 resumed=true
+  ---
+  duration_ms: 545.237083
+  ...
+# Subtest: native 家族：phase-group 开启也不写 session.json（无独立会话可续）
+ok 45 - native 家族：phase-group 开启也不写 session.json（无独立会话可续）
+  ---
+  duration_ms: 108.60725
+  ...
+# Subtest: claude phase-group：重派从上一 run transcript.out 提取 session_id → --resume
+ok 46 - claude phase-group：重派从上一 run transcript.out 提取 session_id → --resume
+  ---
+  duration_ms: 158.12725
+  ...
+# Subtest: claude phase-group 回落：上一 run resumeFailed=true → 不续跑（--resume 缺席、resumed:false）
+ok 47 - claude phase-group 回落：上一 run resumeFailed=true → 不续跑（--resume 缺席、resumed:false）
+  ---
+  duration_ms: 121.629916
+  ...
+# Subtest: phase-group 关闭：dsh 不传 --session-id、不落 session.json（与今天等价）
+ok 48 - phase-group 关闭：dsh 不传 --session-id、不落 session.json（与今天等价）
+  ---
+  duration_ms: 133.184584
+  ...
+# Subtest: plugin.json 位于 .claude-plugin/ 且 name 与 marketplace 一致
+ok 49 - plugin.json 位于 .claude-plugin/ 且 name 与 marketplace 一致
+  ---
+  duration_ms: 9.33925
+  ...
+# Subtest: skills/ 与 core/{lib,programs,vendor} 镜像与正典逐字节一致（递归双向）
+ok 50 - skills/ 与 core/{lib,programs,vendor} 镜像与正典逐字节一致（递归双向）
+  ---
+  duration_ms: 22.579833
+  ...
+# Subtest: commands 与 agents 存在且 agents 为官方 .md 形态（frontmatter name/tools）
+ok 51 - commands 与 agents 存在且 agents 为官方 .md 形态（frontmatter name/tools）
+  ---
+  duration_ms: 0.449959
+  ...
+# Subtest: plugin skills/ 与 core/{lib,programs,vendor} 镜像与正典逐字节一致（递归双向）
+ok 52 - plugin skills/ 与 core/{lib,programs,vendor} 镜像与正典逐字节一致（递归双向）
+  ---
+  duration_ms: 25.604417
+  ...
+# Subtest: plugin package.json 声明 dsh.bundle.patch 且文件存在、覆盖 skill-filesystem、files 含 core
+ok 53 - plugin package.json 声明 dsh.bundle.patch 且文件存在、覆盖 skill-filesystem、files 含 core
+  ---
+  duration_ms: 0.543625
+  ...
+# Subtest: event --list：跨卷回放/过滤/last/空结果/互斥/只读
+ok 54 - event --list：跨卷回放/过滤/last/空结果/互斥/只读
+  ---
+  duration_ms: 791.312334
+  ...
+# Subtest: 信封：ts/seq/schemaVersion 自动补齐，seq 单调
+ok 55 - 信封：ts/seq/schemaVersion 自动补齐，seq 单调
+  ---
+  duration_ms: 13.717959
+  ...
+# Subtest: seq 跨分卷延续：伪造上月分卷高 seq
+ok 56 - seq 跨分卷延续：伪造上月分卷高 seq
+  ---
+  duration_ms: 5.247833
+  ...
+# Subtest: 封闭枚举：未知 type/actor 拒绝；--allow 不在本测试面（调用方责任）
+ok 57 - 封闭枚举：未知 type/actor 拒绝；--allow 不在本测试面（调用方责任）
+  ---
+  duration_ms: 3.265
+  ...
+# Subtest: 读回：类型过滤 + 未知 type 前向兼容（消费方忽略）+ 损坏行跳过
+ok 58 - 读回：类型过滤 + 未知 type 前向兼容（消费方忽略）+ 损坏行跳过
+  ---
+  duration_ms: 12.357083
+  ...
+# Subtest: 缓冲上限常量：GIT_MAX_BUFFER = 64MB
+ok 59 - 缓冲上限常量：GIT_MAX_BUFFER = 64MB
+  ---
+  duration_ms: 1.36925
+  ...
+# Subtest: >1MB diff 真机复现：约 2MB 新增文件的 diff 全量返回不抛错（修复前必 ENOBUFS）
+ok 60 - >1MB diff 真机复现：约 2MB 新增文件的 diff 全量返回不抛错（修复前必 ENOBUFS）
+  ---
+  duration_ms: 177.604083
+  ...
+# Subtest: ENOBUFS 分支：小 maxBuffer 抛可读错误（明示缓冲上限，不误导为 PATH 问题）
+ok 61 - ENOBUFS 分支：小 maxBuffer 抛可读错误（明示缓冲上限，不误导为 PATH 问题）
+  ---
+  duration_ms: 77.129833
+  ...
+# Subtest: ensureWorktree 复用校验：检出分支不符（含 detached）→ worktree-branch-mismatch（含期望/实际）
+not ok 62 - ensureWorktree 复用校验：检出分支不符（含 detached）→ worktree-branch-mismatch（含期望/实际）
+  ---
+  duration_ms: 186.2495
+  location: '/Users/runner/work/schflow/schflow/core/test/unit/gitutil.test.mjs:60:1'
+  failureType: 'testCodeFailure'
+  error: '分支不符须抛 worktree-branch-mismatch 且带期望/实际/路径'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/runner/work/schflow/schflow/core/test/unit/gitutil.test.mjs:68:10)
+    Test.runInAsyncScope (node:async_hooks:206:9)
+    Test.run (node:internal/test_runner/test:796:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:526:18)
+    Test.postRun (node:internal/test_runner/test:889:19)
+    Test.run (node:internal/test_runner/test:835:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:526:7)
+  ...
+# Subtest: ensureWorktree 双 checkout 拒绝：同分支已在另一工作树检出 → 抛错且不产生第二检出
+not ok 63 - ensureWorktree 双 checkout 拒绝：同分支已在另一工作树检出 → 抛错且不产生第二检出
+  ---
+  duration_ms: 176.852875
+  location: '/Users/runner/work/schflow/schflow/core/test/unit/gitutil.test.mjs:84:1'
+  failureType: 'testCodeFailure'
+  error: '唯一检出仍是首个工作树'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '/var/folders/9d/l02zfgrs7c16twd3wbpdmhkc0000gn/T/schflow-gitutil-dup-OB3bPo/wt-one'
+  actual: '/private/var/folders/9d/l02zfgrs7c16twd3wbpdmhkc0000gn/T/schflow-gitutil-dup-OB3bPo/wt-one'
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///Users/runner/work/schflow/schflow/core/test/unit/gitutil.test.mjs:98:10)
+    Test.runInAsyncScope (node:async_hooks:206:9)
+    Test.run (node:internal/test_runner/test:796:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:526:18)
+    Test.postRun (node:internal/test_runner/test:889:19)
+    Test.run (node:internal/test_runner/test:835:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:526:7)
+  ...
+# Subtest: pkgVersion() 等于仓库根 package.json 的 version（命中即缓存）
+ok 64 - pkgVersion() 等于仓库根 package.json 的 version（命中即缓存）
+  ---
+  duration_ms: 2.044291
+  ...
+# Subtest: 新建空库提示：首次出现一次，同库再跑不再出现；SCHFLOW_QUIET=1 静默
+ok 65 - 新建空库提示：首次出现一次，同库再跑不再出现；SCHFLOW_QUIET=1 静默
+  ---
+  duration_ms: 278.379
+  ...
+# Subtest: status --json 含 home/version；status --version 输出与 package.json 一致
+ok 66 - status --json 含 home/version；status --version 输出与 package.json 一致
+  ---
+  duration_ms: 242.688333
+  ...
+# Subtest: dispatch --json / fold --json 主输出含 home
+ok 67 - dispatch --json / fold --json 主输出含 home
+  ---
+  duration_ms: 164.751458
+  ...
+# Subtest: 锁：创建成功=持有；外部持有=忙；释放后可再取
+ok 68 - 锁：创建成功=持有；外部持有=忙；释放后可再取
+  ---
+  duration_ms: 36.949875
+  ...
+# Subtest: 锁：同进程重入=复用同一句柄（appendEvent 内嵌取锁的前提）
+ok 69 - 锁：同进程重入=复用同一句柄（appendEvent 内嵌取锁的前提）
+  ---
+  duration_ms: 3.806
+  ...
+# Subtest: 锁：陈旧（>staleMs）被偷走，新鲜的不偷
+ok 70 - 锁：陈旧（>staleMs）被偷走，新鲜的不偷
+  ---
+  duration_ms: 1.977875
+  ...
+# Subtest: 锁：holder pid 已死的残留（Windows delete-pending 幽灵/崩溃 holder）立即偷移，不忙等
+ok 71 - 锁：holder pid 已死的残留（Windows delete-pending 幽灵/崩溃 holder）立即偷移，不忙等
+  ---
+  duration_ms: 1.918917
+  ...
+# Subtest: 锁三态①：活 pid 持有=忙（不偷，真持有者仍在临界区）
+ok 72 - 锁三态①：活 pid 持有=忙（不偷，真持有者仍在临界区）
+  ---
+  duration_ms: 12.021375
+  ...
+# Subtest: 锁三态②：死 pid 残留=立即偷（不等 10min 陈旧窗）
+ok 73 - 锁三态②：死 pid 残留=立即偷（不等 10min 陈旧窗）
+  ---
+  duration_ms: 3.842916
+  ...
+# Subtest: 锁三态③：无 holder + 宽限窗（>1.5s）已过=崩溃残留，偷
+ok 74 - 锁三态③：无 holder + 宽限窗（>1.5s）已过=崩溃残留，偷
+  ---
+  duration_ms: 1.165875
+  ...
+# Subtest: 锁：release 清理 held 表，同路径可重取
+ok 75 - 锁：release 清理 held 表，同路径可重取
+  ---
+  duration_ms: 1.244792
+  ...
+# Subtest: next-id --peek：只读预告，不消耗计数
+ok 76 - next-id --peek：只读预告，不消耗计数
+  ---
+  duration_ms: 461.40475
+  ...
+# Subtest: 修正面①：deliverables string[] → [{path}]（修后全绿）
+ok 77 - 修正面①：deliverables string[] → [{path}]（修后全绿）
+  ---
+  duration_ms: 1.262417
+  ...
+# Subtest: 修正面①：deliverables 单对象 → [对象]
+ok 78 - 修正面①：deliverables 单对象 → [对象]
+  ---
+  duration_ms: 0.109
+  ...
+# Subtest: 修正面②：status trim+小写归一（枚举内才修）
+ok 79 - 修正面②：status trim+小写归一（枚举内才修）
+  ---
+  duration_ms: 0.561709
+  ...
+# Subtest: 修正面③：summary 数字/布尔 → String()（空串/null 不在本则）
+ok 80 - 修正面③：summary 数字/布尔 → String()（空串/null 不在本则）
+  ---
+  duration_ms: 0.147583
+  ...
+# Subtest: 组合修正：一次全修三面
+ok 81 - 组合修正：一次全修三面
+  ---
+  duration_ms: 0.1045
+  ...
+# Subtest: 不修面：unknown-field / 缺 path / flags 数组 / freshness 错配 / 枚举外 status / 混合 deliverables
+ok 82 - 不修面：unknown-field / 缺 path / flags 数组 / freshness 错配 / 枚举外 status / 混合 deliverables
+  ---
+  duration_ms: 0.1165
+  ...
+# Subtest: 不修面：commit-required（git 轨道 done 无 commit——不可凭空造哈希）
+ok 83 - 不修面：commit-required（git 轨道 done 无 commit——不可凭空造哈希）
+  ---
+  duration_ms: 0.136333
+  ...
+# Subtest: 回退面：修正后仍有其他违规 → changed:false 原样返回（原违规清单由调用方保有）
+ok 84 - 回退面：修正后仍有其他违规 → changed:false 原样返回（原违规清单由调用方保有）
+  ---
+  duration_ms: 0.087708
+  ...
+# Subtest: 非 object 形态与完全合法输入：均 changed:false 零副作用
+ok 85 - 非 object 形态与完全合法输入：均 changed:false 零副作用
+  ---
+  duration_ms: 0.190834
+  ...
+# Subtest: tokenize：ASCII 词 + CJK 二元组
+ok 86 - tokenize：ASCII 词 + CJK 二元组
+  ---
+  duration_ms: 0.933625
+  ...
+# Subtest: jaccard：同文=1 近似高 全异=0
+ok 87 - jaccard：同文=1 近似高 全异=0
+  ---
+  duration_ms: 0.419167
+  ...
+# Subtest: 环境池：static 载入 / 点名与标签匹配 / protected 永不匹配
+ok 88 - 环境池：static 载入 / 点名与标签匹配 / protected 永不匹配
+  ---
+  duration_ms: 11.303667
+  ...
+# Subtest: 租约：exclusive 串行 / setup 0→1 与 teardown N→0 跳变 / 释放后再取
+ok 89 - 租约：exclusive 串行 / setup 0→1 与 teardown N→0 跳变 / 释放后再取
+  ---
+  duration_ms: 43.698333
+  ...
+# Subtest: 租约：shared 计数并发 capacity=2，钩子仅 0→1 / N→0 跳变
+ok 90 - 租约：shared 计数并发 capacity=2，钩子仅 0→1 / N→0 跳变
+  ---
+  duration_ms: 25.884084
+  ...
+# Subtest: 孤儿回收：超 TTL 强制释放 + 事件重放重建
+ok 91 - 孤儿回收：超 TTL 强制释放 + 事件重放重建
+  ---
+  duration_ms: 10.22125
+  ...
+# Subtest: 四态封闭 + 未知字段拒绝
+ok 92 - 四态封闭 + 未知字段拒绝
+  ---
+  duration_ms: 1.219291
+  ...
+# Subtest: git 轨道 done 必带 commit；非 git 不要求
+ok 93 - git 轨道 done 必带 commit；非 git 不要求
+  ---
+  duration_ms: 0.121458
+  ...
+# Subtest: freshness=stale ⇒ status=stale
+ok 94 - freshness=stale ⇒ status=stale
+  ---
+  duration_ms: 0.152042
+  ...
+# Subtest: summary 必填
+ok 95 - summary 必填
+  ---
+  duration_ms: 0.073958
+  ...
+# Subtest: buildLauncher: claude + resumeSession → 追加 --resume <id>
+ok 96 - buildLauncher: claude + resumeSession → 追加 --resume <id>
+  ---
+  duration_ms: 0.864083
+  ...
+# Subtest: buildLauncher: dsh + resumeSession → 追加 --session-id <id>（在 stdin `-` 之前）
+ok 97 - buildLauncher: dsh + resumeSession → 追加 --session-id <id>（在 stdin `-` 之前）
+  ---
+  duration_ms: 0.092625
+  ...
+# Subtest: buildLauncher: 无 resumeSession → claude/dsh 均不含会话续跑参数
+ok 98 - buildLauncher: 无 resumeSession → claude/dsh 均不含会话续跑参数
+  ---
+  duration_ms: 0.161375
+  ...
+# Subtest: buildLauncher: custom 忽略 resumeSession（仅 claude/dsh 家族支持会话续跑）
+ok 99 - buildLauncher: custom 忽略 resumeSession（仅 claude/dsh 家族支持会话续跑）
+  ---
+  duration_ms: 1.166167
+  ...
+# Subtest: AKIA allowlist：两个 AWS 公开文档示例值放行（null）
+ok 100 - AKIA allowlist：两个 AWS 公开文档示例值放行（null）
+  ---
+  duration_ms: 1.122333
+  ...
+# Subtest: AKIA allowlist 是精确匹配：同前缀非示例值照拦（未放宽模式）
+ok 101 - AKIA allowlist 是精确匹配：同前缀非示例值照拦（未放宽模式）
+  ---
+  duration_ms: 0.166958
+  ...
+# Subtest: 其它模式不受 allowlist 影响：ghp_ token 与私钥块仍命中
+ok 102 - 其它模式不受 allowlist 影响：ghp_ token 与私钥块仍命中
+  ---
+  duration_ms: 0.170792
+  ...
+# Subtest: 混合场景：同一 diff 先示例值后伪造值 → 命中后者（逐匹配遍历语义）
+ok 103 - 混合场景：同一 diff 先示例值后伪造值 → 命中后者（逐匹配遍历语义）
+  ---
+  duration_ms: 0.079542
+  ...
+# Subtest: 夹具源码不含未放行的敏感字面量（出口扫描自指回归）
+ok 104 - 夹具源码不含未放行的敏感字面量（出口扫描自指回归）
+  ---
+  duration_ms: 1.307917
+  ...
+# Subtest: 规则1：未知字段拒绝
+ok 105 - 规则1：未知字段拒绝
+  ---
+  duration_ms: 1.047792
+  ...
+# Subtest: 规则2：枚举与正则
+ok 106 - 规则2：枚举与正则
+  ---
+  duration_ms: 0.221375
+  ...
+# Subtest: source trust 与 type 一致性（正典位抄录校验）
+ok 107 - source trust 与 type 一致性（正典位抄录校验）
+  ---
+  duration_ms: 1.121208
+  ...
+# Subtest: 规则4：highest 仅 human
+ok 108 - 规则4：highest 仅 human
+  ---
+  duration_ms: 0.247583
+  ...
+# Subtest: 规则5：exclusive-human 方向机械拒绝 + 未知 direction 响亮失败
+ok 109 - 规则5：exclusive-human 方向机械拒绝 + 未知 direction 响亮失败
+  ---
+  duration_ms: 1.172625
+  ...
+# Subtest: 规则3：转移表——合法/非法逐项
+ok 110 - 规则3：转移表——合法/非法逐项
+  ---
+  duration_ms: 0.254166
+  ...
+# Subtest: normalizeCard 默认值补齐不覆盖
+ok 111 - normalizeCard 默认值补齐不覆盖
+  ---
+  duration_ms: 1.621167
+  ...
+# Subtest: author 枚举：human/model 合法，其它拒绝
+ok 112 - author 枚举：human/model 合法，其它拒绝
+  ---
+  duration_ms: 0.419375
+  ...
+# Subtest: author=model：approved/running/done 缺 approvedBy → approval-missing
+ok 113 - author=model：approved/running/done 缺 approvedBy → approval-missing
+  ---
+  duration_ms: 0.322792
+  ...
+# Subtest: 向后兼容：无 author 的旧卡 approved 无需 approvedBy
+ok 114 - 向后兼容：无 author 的旧卡 approved 无需 approvedBy
+  ---
+  duration_ms: 0.184833
+  ...
+# Subtest: approvedBy 仅允许 human；approvedAt 出现即须 ISO
+ok 115 - approvedBy 仅允许 human；approvedAt 出现即须 ISO
+  ---
+  duration_ms: 0.176
+  ...
+# Subtest: P17: flags 显式声明最优先
+ok 116 - P17: flags 显式声明最优先
+  ---
+  duration_ms: 0.867834
+  ...
+# Subtest: P18: 凭据/权限/上游缺失 → 依赖类
+ok 117 - P18: 凭据/权限/上游缺失 → 依赖类
+  ---
+  duration_ms: 0.151042
+  ...
+# Subtest: P19: 配额墙/网络/超时 → 环境类（可自动重试）
+ok 118 - P19: 配额墙/网络/超时 → 环境类（可自动重试）
+  ---
+  duration_ms: 0.106042
+  ...
+# Subtest: P20: 判不了 → 设计类（fail-closed 缺省）
+ok 119 - P20: 判不了 → 设计类（fail-closed 缺省）
+  ---
+  duration_ms: 0.073208
+  ...
+# Subtest: P21: 双命中取依赖类（更具体压过环境类）
+ok 120 - P21: 双命中取依赖类（更具体压过环境类）
+  ---
+  duration_ms: 0.074625
+  ...
+# Subtest: 真实案例回放：Cycle D dsh 沙箱受阻应判依赖类
+ok 121 - 真实案例回放：Cycle D dsh 沙箱受阻应判依赖类
+  ---
+  duration_ms: 0.713667
+  ...
+# Subtest: 四处版本清单相等（bump-version.sh 的四个落点）
+ok 122 - 四处版本清单相等（bump-version.sh 的四个落点）
+  ---
+  duration_ms: 1.323583
+  ...
+# Subtest: package-lock.json 根版本两处与 package.json 一致（version / packages[""].version）
+ok 123 - package-lock.json 根版本两处与 package.json 一致（version / packages[""].version）
+  ---
+  duration_ms: 5.699042
+  ...
+# Subtest: package.json 的 bin 指向存在且以 .mjs 结尾的入口
+ok 124 - package.json 的 bin 指向存在且以 .mjs 结尾的入口
+  ---
+  duration_ms: 0.237791
+  ...
+# Subtest: schflow --version 输出 schflow <根 package.json 版本>
+ok 125 - schflow --version 输出 schflow <根 package.json 版本>
+  ---
+  duration_ms: 48.045958
+  ...
+# Subtest: schflow --help / 无参输出骨架提示 + 版本 + 用法
+ok 126 - schflow --help / 无参输出骨架提示 + 版本 + 用法
+  ---
+  duration_ms: 88.471792
+  ...
+# Subtest: package.json 无运行时依赖（引擎零 npm 依赖，node 直跑）
+ok 127 - package.json 无运行时依赖（引擎零 npm 依赖，node 直跑）
+  ---
+  duration_ms: 1.267541
+  ...
+# Subtest: core/（排除 vendor/）无 'yaml' 裸导入——只准相对路径引用内置副本
+ok 128 - core/（排除 vendor/）无 'yaml' 裸导入——只准相对路径引用内置副本
+  ---
+  duration_ms: 7.54725
+  ...
+# Subtest: 内置副本可审计：LICENSE 在、PROVENANCE 记录版本
+ok 129 - 内置副本可审计：LICENSE 在、PROVENANCE 记录版本
+  ---
+  duration_ms: 0.470959
+  ...
+1..129
+# tests 129
+# suites 0
+# pass 124
+# fail 5
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 24161.185791
