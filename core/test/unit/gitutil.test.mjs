@@ -19,7 +19,7 @@ import test from 'node:test';
 import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
-import { git, GIT_MAX_BUFFER, ensureWorktree, worktreeList } from '../../lib/gitutil.mjs';
+import { git, GIT_MAX_BUFFER, ensureWorktree, worktreeList, canonKey } from '../../lib/gitutil.mjs';
 import { mkToyRepo, tmpdir } from '../helpers.mjs';
 
 test('缓冲上限常量：GIT_MAX_BUFFER = 64MB', () => {
@@ -95,6 +95,27 @@ test('ensureWorktree 双 checkout 拒绝：同分支已在另一工作树检出 
   );
   const holdings = worktreeList(repo).filter((w) => w.branch === 'schflow/P-20261121-2');
   assert.equal(holdings.length, 1, '同分支只允许一个工作树检出');
-  assert.equal(path.resolve(holdings[0].path), path.resolve(wt1), '唯一检出仍是首个工作树');
-  assert.ok(!worktreeList(repo).some((w) => path.resolve(w.path) === path.resolve(wt2)), '第二工作树未注册');
+  assert.equal(canonKey(holdings[0].path), canonKey(wt1), '唯一检出仍是首个工作树');
+  assert.ok(!worktreeList(repo).some((w) => canonKey(w.path) === canonKey(wt2)), '第二工作树未注册');
+});
+
+// P-20261121-7：路径同一性（POSIX）——真实路径已注册的工作树，经符号链接路径再次 ensureWorktree
+// 必须判定为同一工作树并复用（模拟 macOS /var→/private/var；CI 上短名/符号链接形态差异会让
+// 字符串比较误判「未注册」→ 对已注册树 worktree add 失败）。Windows 由 8.3 短名在 CI 同键覆盖。
+test('ensureWorktree 路径同一性（POSIX 符号链接）：经符号链接路径复用已注册工作树', { skip: process.platform === 'win32' && 'Windows 无符号链接场景（8.3 短名由 CI 覆盖）' }, () => {
+  const dir = tmpdir('schflow-gitutil-symlink-');
+  const repo = mkToyRepo(dir);
+  const linkDir = path.join(dir, 'link');
+  fs.symlinkSync(dir, linkDir, 'dir');
+  const realWt = path.join(dir, 'wt-sym');
+  const viaLink = path.join(linkDir, 'wt-sym');
+
+  const first = ensureWorktree(repo, realWt, 'schflow/P-20261121-7', 'main');
+  assert.equal(first.reused, false, '首次以真实路径创建');
+  const second = ensureWorktree(repo, viaLink, 'schflow/P-20261121-7', 'main');
+  assert.equal(second.reused, true, '符号链接形态与真实路径必须判定为同一工作树（不得走 worktree add）');
+
+  const holdings = worktreeList(repo).filter((w) => w.branch === 'schflow/P-20261121-7');
+  assert.equal(holdings.length, 1, '同一工作树只注册一次');
+  assert.equal(canonKey(holdings[0].path), canonKey(realWt));
 });

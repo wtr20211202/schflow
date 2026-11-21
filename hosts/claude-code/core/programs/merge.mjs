@@ -33,7 +33,7 @@ import { listOpenCards, loadCard, findTaskDir, transition, saveCard, archiveTask
 import { routeProfile, resolveRepo, resolveBase } from '../lib/profile.mjs';
 import { readEvents, appendEvent } from '../lib/events.mjs';
 import {
-  git, gitOk, worktreeList, mergeWorktree, branchExists, isAncestor, removeWorktree, taskWorktree,
+  git, gitOk, worktreeList, mergeWorktree, branchExists, isAncestor, removeWorktree, taskWorktree, canonKey,
 } from '../lib/gitutil.mjs';
 import { resolveRebase } from '../lib/conflicto.mjs';
 import { secretScan } from '../lib/secret-scan.mjs'; // 出口扫描（§5.2 对策 7；allowlist 见模块头注）
@@ -289,7 +289,7 @@ function eject(home, id, reason, out) {
 }
 
 function ensureMergeWorktree(repo, mw, base) {
-  if (worktreeList(repo).some((w) => path.resolve(w.path) === path.resolve(mw))) return;
+  if (worktreeList(repo).some((w) => canonKey(w.path) === canonKey(mw))) return;
   // 残局自愈（崩溃/半途失败后的三种形态都要接住——CI 干净环境首次暴露）：
   // ① 目录在、注册不在（rm 半途）→ 清目录再建；② 目录不在、注册在（missing but registered）
   // → prune 注册再建；③ 两者都在但 add 仍拒 → add -f 覆盖。合并工作树是引擎私有的临时面，
@@ -354,7 +354,7 @@ function pushBase(home, repo, base, id, branchName, mergeTip) {
 
 function deleteBranchAndWorktree(repo, id) {
   const wt = taskWorktree(repo, id);
-  if (worktreeList(repo).some((w) => path.resolve(w.path) === path.resolve(wt))) {
+  if (worktreeList(repo).some((w) => canonKey(w.path) === canonKey(wt))) {
     removeWorktree(repo, wt, { force: true });
   }
   git(repo, ['branch', '-d', `schflow/${id}`], { allowFail: true }); // -d 安全阀：未合入拒删

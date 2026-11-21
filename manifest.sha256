@@ -14,7 +14,7 @@ e44e0876927aa8c0fef9dab5595dd6d2113a92f9fbd191fa68be78b4aa2d1153 *./README.md
 7072bc9e9e5526806dc72f8b4306d9923889fe2568f4cc5129279e1e7ffd9f1a *./core/lib/directions.mjs
 12b81bf78de2416f0eb0a0ba5faac75ac680488562075f089828ef99f6e5e302 *./core/lib/envpool.mjs
 05baebe5463e109b8346d8af824737929bd3572404583b835a2b291666a358bc *./core/lib/events.mjs
-3728d14333069a7fa3ecb83a701ce2cd31a1f317fcf5a0021d82e2c9d932f479 *./core/lib/gitutil.mjs
+7a9d9f3cf52505eb470ce60fc334bde0b7649afde2ade4f41386a11892df9ea6 *./core/lib/gitutil.mjs
 0b7715790bd3aa1d41d2333c1fc239309d8af695588eebec369cc67cd3c8f9bd *./core/lib/home.mjs
 6195d3d43677bf2a6ebccd735d9ab00b32d3159354517636ee9ddbe4170db7d7 *./core/lib/lock.mjs
 6ac04ebe382e51f80524c17708ed810db0cb97f872fd4b59e934fb2a99b28700 *./core/lib/normalize.mjs
@@ -37,7 +37,7 @@ b5da938ee2d7669a506f2ea3b26d96d3ae52d8d8d13a45380465b2508d2430d9 *./core/lib/tri
 249f90f64a5a3a97cb219e5eadf8075759ad9c2e4ffc3f22fae8f0161d379cee *./core/programs/executors/fake.mjs
 3e5592b35299c69389b8784c54bd2df4de33d7b674386c3e72d9c5821bb99c29 *./core/programs/fold.mjs
 5eb991a452b078aeaea168391891bcda7feffaa69e6fa9a5b0cc412dbf8c2c2a *./core/programs/harvest.mjs
-5bc6fa6a144531fe1653b18247a90e7e5c7637e1958c20a9df4a65cc01825dff *./core/programs/merge.mjs
+9cb4db19e484e6c6e644589e39fd7c926c41f6914469f08217269ecafa66655b *./core/programs/merge.mjs
 e6d24d4d56d4891bb14531d3cce8b291b9aa00bb6576d07746dccd19079d0541 *./core/programs/next-id.mjs
 c84c7426b401d591cf265415d273063d2cf271084c034031a05dfa9cb946ca1c *./core/programs/status.mjs
 29d1a2544afcb9c5618453acf3cf55fa70f15297c9e6a9611f15bf6ecb3c3cdd *./core/programs/validate-task.mjs
@@ -68,7 +68,7 @@ a304c92bb3657c9485441b47cbba68593f43374f9423c64b2f20a7ff3387744f *./core/test/in
 bb521d119ce3f999a7bab703184e1a2b78c3934983515622625ebb4d9d168383 *./core/test/unit/dsh-plugin-sync.test.mjs
 76d5608372da49cf5046612a80b6d421d807d7c6ba7b9365c0313c85f6f12c42 *./core/test/unit/event-list.test.mjs
 180a324ef44fdf4f03191aa3562efe6bab1111da3031c616561cbaecc688c3a2 *./core/test/unit/events.test.mjs
-f5aa5409b8a088b63befbb5d0ec926cd75045b967414ea80550da9e968e96a5c *./core/test/unit/gitutil.test.mjs
+768d64f96210a91fd6fe6510552650e1f7b3be2dad9f30cfafcdcdf55e679139 *./core/test/unit/gitutil.test.mjs
 3800f5a8d893dfd25762d7e62d5cbe249154fd4157f6785578f40c7c18b574ce *./core/test/unit/identity.test.mjs
 c6ce85cd79831988cba763ef759ee9c1c8255f8a64c058a2ba5d285699460356 *./core/test/unit/lock.test.mjs
 e3c1f741f061ad4185358144451cf744a127437a9ef41e02bc7867d42bc0f0b9 *./core/test/unit/next-id.test.mjs
@@ -212,7 +212,7 @@ fa6f35320c8fadf74e566a87068032edc244179f927239c462311bfccc6e96d8 *./hosts/claude
 7072bc9e9e5526806dc72f8b4306d9923889fe2568f4cc5129279e1e7ffd9f1a *./hosts/claude-code/core/lib/directions.mjs
 12b81bf78de2416f0eb0a0ba5faac75ac680488562075f089828ef99f6e5e302 *./hosts/claude-code/core/lib/envpool.mjs
 05baebe5463e109b8346d8af824737929bd3572404583b835a2b291666a358bc *./hosts/claude-code/core/lib/events.mjs
-3728d14333069a7fa3ecb83a701ce2cd31a1f317fcf5a0021d82e2c9d932f479 *./hosts/claude-code/core/lib/gitutil.mjs
+7a9d9f3cf52505eb470ce60fc334bde0b7649afde2ade4f41386a11892df9ea6 *./hosts/claude-code/core/lib/gitutil.mjs
 0b7715790bd3aa1d41d2333c1fc239309d8af695588eebec369cc67cd3c8f9bd *./hosts/claude-code/core/lib/home.mjs
 6195d3d43677bf2a6ebccd735d9ab00b32d3159354517636ee9ddbe4170db7d7 *./hosts/claude-code/core/lib/lock.mjs
 6ac04ebe382e51f80524c17708ed810db0cb97f872fd4b59e934fb2a99b28700 *./hosts/claude-code/core/lib/normalize.mjs
@@ -235,7 +235,7 @@ b5da938ee2d7669a506f2ea3b26d96d3ae52d8d8d13a45380465b2508d2430d9 *./hosts/claude
 249f90f64a5a3a97cb219e5eadf8075759ad9c2e4ffc3f22fae8f0161d379cee *./hosts/claude-code/core/programs/executors/fake.mjs
 3e5592b35299c69389b8784c54bd2df4de33d7b674386c3e72d9c5821bb99c29 *./hosts/claude-code/core/programs/fold.mjs
 5eb991a452b078aeaea168391891bcda7feffaa69e6fa9a5b0cc412dbf8c2c2a *./hosts/claude-code/core/programs/harvest.mjs
-5bc6fa6a144531fe1653b18247a90e7e5c7637e1958c20a9df4a65cc01825dff *./hosts/claude-code/core/programs/merge.mjs
+9cb4db19e484e6c6e644589e39fd7c926c41f6914469f08217269ecafa66655b *./hosts/claude-code/core/programs/merge.mjs
 e6d24d4d56d4891bb14531d3cce8b291b9aa00bb6576d07746dccd19079d0541 *./hosts/claude-code/core/programs/next-id.mjs
 c84c7426b401d591cf265415d273063d2cf271084c034031a05dfa9cb946ca1c *./hosts/claude-code/core/programs/status.mjs
 29d1a2544afcb9c5618453acf3cf55fa70f15297c9e6a9611f15bf6ecb3c3cdd *./hosts/claude-code/core/programs/validate-task.mjs
@@ -334,7 +334,7 @@ d1815a3cb1accc50af0f29ea87ba248bea65ec4b7fb0922ad94734e108ee5f05 *./hosts/claude
 7072bc9e9e5526806dc72f8b4306d9923889fe2568f4cc5129279e1e7ffd9f1a *./hosts/dsh/plugin/core/lib/directions.mjs
 12b81bf78de2416f0eb0a0ba5faac75ac680488562075f089828ef99f6e5e302 *./hosts/dsh/plugin/core/lib/envpool.mjs
 05baebe5463e109b8346d8af824737929bd3572404583b835a2b291666a358bc *./hosts/dsh/plugin/core/lib/events.mjs
-3728d14333069a7fa3ecb83a701ce2cd31a1f317fcf5a0021d82e2c9d932f479 *./hosts/dsh/plugin/core/lib/gitutil.mjs
+7a9d9f3cf52505eb470ce60fc334bde0b7649afde2ade4f41386a11892df9ea6 *./hosts/dsh/plugin/core/lib/gitutil.mjs
 0b7715790bd3aa1d41d2333c1fc239309d8af695588eebec369cc67cd3c8f9bd *./hosts/dsh/plugin/core/lib/home.mjs
 6195d3d43677bf2a6ebccd735d9ab00b32d3159354517636ee9ddbe4170db7d7 *./hosts/dsh/plugin/core/lib/lock.mjs
 6ac04ebe382e51f80524c17708ed810db0cb97f872fd4b59e934fb2a99b28700 *./hosts/dsh/plugin/core/lib/normalize.mjs
@@ -357,7 +357,7 @@ b5da938ee2d7669a506f2ea3b26d96d3ae52d8d8d13a45380465b2508d2430d9 *./hosts/dsh/pl
 249f90f64a5a3a97cb219e5eadf8075759ad9c2e4ffc3f22fae8f0161d379cee *./hosts/dsh/plugin/core/programs/executors/fake.mjs
 3e5592b35299c69389b8784c54bd2df4de33d7b674386c3e72d9c5821bb99c29 *./hosts/dsh/plugin/core/programs/fold.mjs
 5eb991a452b078aeaea168391891bcda7feffaa69e6fa9a5b0cc412dbf8c2c2a *./hosts/dsh/plugin/core/programs/harvest.mjs
-5bc6fa6a144531fe1653b18247a90e7e5c7637e1958c20a9df4a65cc01825dff *./hosts/dsh/plugin/core/programs/merge.mjs
+9cb4db19e484e6c6e644589e39fd7c926c41f6914469f08217269ecafa66655b *./hosts/dsh/plugin/core/programs/merge.mjs
 e6d24d4d56d4891bb14531d3cce8b291b9aa00bb6576d07746dccd19079d0541 *./hosts/dsh/plugin/core/programs/next-id.mjs
 c84c7426b401d591cf265415d273063d2cf271084c034031a05dfa9cb946ca1c *./hosts/dsh/plugin/core/programs/status.mjs
 29d1a2544afcb9c5618453acf3cf55fa70f15297c9e6a9611f15bf6ecb3c3cdd *./hosts/dsh/plugin/core/programs/validate-task.mjs

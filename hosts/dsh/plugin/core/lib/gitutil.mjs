@@ -85,6 +85,16 @@ export function worktreeList(repoDir) {
   return list;
 }
 
+/** 路径同一性键（CI 实锤：Windows 8.3 短名 `RUNNER~1` vs 长名 `runneradmin`；macOS
+ *  `/var/folders/...` vs `/private/var/folders/...` 符号链接）：resolve → realpathSync.native
+ *  （路径不存在则回落 resolve 结果）→ win32 下小写。工作树复用判定必须用 canonical 比较——
+ *  两侧形态不同时字符串比较会误判「未注册」，进而对已注册工作树走 worktree add 必失败。 */
+export function canonKey(p) {
+  let abs = path.resolve(p);
+  try { abs = fs.realpathSync.native(abs); } catch { /* 不存在则用 resolve 结果 */ }
+  return process.platform === 'win32' ? abs.toLowerCase() : abs;
+}
+
 /** 建/占 worktree：已存在=复用（WIP 保全，决策 18）——复用前校验检出分支 == 期望分支：
  *  手动切分支/多 HOME 撞 id 会让提交落到别处，合并侧 already-ancestor 恢复再把它当「已合」静默归档。
  *  分支存在=挂到工作树；否则从 base 新建。
@@ -93,7 +103,7 @@ export function worktreeList(repoDir) {
  *  -f 收紧：既有分支挂接形态重试一次仍失败即抛错（附 git stderr 摘要）——-f 会让同一分支被两个
  *  工作树检出（双 checkout）；仅新建分支（-b）形态最后一次允许 -f（只影响本任务新分支）。 */
 export function ensureWorktree(repoDir, wpath, branch, base) {
-  const entry = worktreeList(repoDir).find((w) => path.resolve(w.path) === path.resolve(wpath));
+  const entry = worktreeList(repoDir).find((w) => canonKey(w.path) === canonKey(wpath));
   if (entry) {
     if (entry.branch !== branch) {
       const actual = entry.detached ? 'detached' : (entry.branch ?? '(未知)');
